@@ -90,4 +90,6 @@ module datapath (
 		.reset(reset),
 		.d(PCNext),
 		.q(PC)
+	);
+	
 endmodule
