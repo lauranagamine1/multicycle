@@ -85,4 +85,9 @@ module datapath (
 	// (Address Mux), etc. so that your code is easier to understand.
 
 	// ADD CODE HERE
+	flopr #(32) pcreg(
+		.clk(clk),
+		.reset(reset),
+		.d(PCNext),
+		.q(PC)
 endmodule
