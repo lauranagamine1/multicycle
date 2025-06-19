@@ -37,7 +37,7 @@ module alu(input [31:0] SrcA, SrcB,
     3'b00?: Result = sum;
     3'b010: Result = SrcA & SrcB;
     3'b011: Result = SrcA | SrcB;
-    3'b100: Result = SrcA ^ SrcB; // XOR
+    3'b100: Result = SrcA * SrcB; // MUL
     3'b101: Result = SrcB; // MOV
     endcase
     end
