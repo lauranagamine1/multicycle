@@ -64,13 +64,14 @@ module condlogic (
 	*/
 
 	// ADD CODE HERE,
-	flopenr #(2) flagreg1(
-		.clk(clk),
-		.reset(reset),
-		.en(FlagWrite[1]),
-		.d(ALUFlags[3:2]),
-		.q(Flags[3:2])
-	);
+	flopenr #(4) flagreg (
+	.clk(clk),
+	.reset(reset),
+	.en(|FlagWrite),
+	.d(ALUFlags),
+	.q(Flags)
+);
+
 	flopenr #(2) flagreg0(
 		.clk(clk),
 		.reset(reset),
