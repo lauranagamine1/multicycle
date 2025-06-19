@@ -62,7 +62,7 @@ module datapath (
 	input wire [1:0] ALUSrcB;
 	input wire [1:0] ResultSrc;
 	input wire [1:0] ImmSrc;
-	input wire [1:0] ALUControl;
+	input wire [2:0] ALUControl;
 	wire [31:0] PCNext;
 	wire [31:0] PC;
 	wire [31:0] ExtImm;
