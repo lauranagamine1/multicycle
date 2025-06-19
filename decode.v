@@ -45,7 +45,7 @@ module decode (
 	input wire [1:0] Op;
 	input wire [5:0] Funct;
 	input wire [3:0] Rd;
-	output reg [1:0] FlagW;
+	output reg [1:0] FlagW; // now reg
 	output wire PCS;
 	output wire NextPC;
 	output wire RegW;
@@ -57,7 +57,7 @@ module decode (
 	output wire [1:0] ALUSrcB;
 	output wire [1:0] ImmSrc;
 	output wire [1:0] RegSrc;
-	output reg [2:0] ALUControl; // change //se requieren 3 bits para el MUL, no 2
+	output reg [2:0] ALUControl; // change
 	wire Branch;
 	wire ALUOp;
 
@@ -91,11 +91,10 @@ module decode (
 	// Recall that the input to Instr Decoder is Op, and the outputs are
 	// ImmSrc and RegSrc. We've completed the ImmSrc logic for you.
 
-	// Instr Decoder
+	// INSTR DECODER
 	assign ImmSrc = Op;
 	reg [9:0] controls;
-	wire Branch;
-	wire ALUOp;
+
 	always @(*)
 		casex (Op)
 			2'b00:
@@ -112,21 +111,26 @@ module decode (
 			default: controls = 10'bxxxxxxxxxx;
 		endcase
 	assign {RegSrc, ImmSrc, ALUSrc, MemtoReg, RegW, MemW, Branch, ALUOp} = controls;
+	
+	// ALU DECODER
 	always @(*)
 		if (ALUOp) begin
-			case (Funct[4:1])
-				4'b0100: ALUControl = 2'b00;
-				4'b0010: ALUControl = 2'b01;
-				4'b0000: ALUControl = 2'b10;
-				4'b1100: ALUControl = 2'b11;
-				default: ALUControl = 2'bxx;
+			casex (Funct[4:1])
+			    //4'b0001: ALUControl = 3'b100; // XOR previous func
+				4'b0100: ALUControl = 3'b000;
+				4'b0010: ALUControl = 3'b001;
+				4'b0000: ALUControl = 3'b010;
+				4'b1100: ALUControl = 3'b011;
+				default: ALUControl = 3'bxxx;
 			endcase
 			FlagW[1] = Funct[0];
-			FlagW[0] = Funct[0] & ((ALUControl == 2'b00) | (ALUControl == 2'b01));
+			FlagW[0] = Funct[0] & ((ALUControl == 3'b000) | (ALUControl == 3'b001));
 		end
 		else begin
-			ALUControl = 2'b00;
+			ALUControl = 3'b000;
 			FlagW = 2'b00;
 		end
+		
+	// CONDICIONES PC
 	assign PCS = ((Rd == 4'b1111) & RegW) | Branch;
 endmodule

@@ -98,17 +98,14 @@ module mainfsm (
 			EXECUTEI:
 			     nextstate = ALUWB;
 			MEMADR:
-			     case (Op)
-			         1'b0:
-			             if(!Funct[0]) // =0
-			                 nextstate = MEMWRITE;
-			         1'b1:
-			             if(Funct[0]) // =1
-			                 nextstate = MEMREAD;
-			         default: nextstate = UNKNOWN;
-			     endcase
+                if (Funct[0] == 1'b0)
+                    nextstate = MEMWRITE; // STR
+                else
+                    nextstate = MEMREAD;  // LDR
+
 			MEMREAD:
 			     nextstate = MEMWB;
+
 			default: nextstate = FETCH;
 		endcase
 
