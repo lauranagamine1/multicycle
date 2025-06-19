@@ -57,7 +57,7 @@ module decode (
 	output wire [1:0] ALUSrcB;
 	output wire [1:0] ImmSrc;
 	output wire [1:0] RegSrc;
-	output reg [1:0] ALUControl; // change
+	output reg [2:0] ALUControl; // change //se requieren 3 bits para el MUL, no 2
 	wire Branch;
 	wire ALUOp;
 
