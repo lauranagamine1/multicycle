@@ -51,7 +51,7 @@ module controller (
 	output wire [1:0] ALUSrcB;
 	output wire [1:0] ResultSrc;
 	output wire [1:0] ImmSrc;
-	output wire [1:0] ALUControl;
+	output wire [2:0] ALUControl; //modificación a 3 bits el ALUControl
 	wire [1:0] FlagW;
 	wire PCS;
 	wire NextPC;
