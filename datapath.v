@@ -78,6 +78,8 @@ module datapath (
 	wire [3:0] RA1;
 	wire [3:0] RA2;
 
+	assign PCNext = ALUOut;
+
 	// Your datapath hardware goes below. Instantiate each of the 
 	// submodules that you need. Remember that you can reuse hardware
 	// from previous labs. Be sure to give your instantiated modules 
@@ -113,7 +115,7 @@ module datapath (
 	);
 	mux2 #(4) ra1mux(
 		.d0(Instr[19:16]),
-		.d1(32'b1111),
+		.d1(4'b1111),
 		.s(RegSrc[0]),
 		.y(RA1)
 	);
@@ -160,7 +162,7 @@ module datapath (
 	mux3 #(32) srcbmux(
 	   .d0(WriteData),
 	   .d1(ExtImm),
-	   .d2(4'b100),
+	   .d2(32'b100),
 	   .s(ALUSrcB),
 	   .y(SrcB)
 	);
