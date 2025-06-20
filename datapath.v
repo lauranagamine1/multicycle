@@ -162,7 +162,7 @@ module datapath (
 	mux3 #(32) srcbmux(
 	   .d0(WriteData),
 	   .d1(ExtImm),
-	   .d2(32'b100),
+	   .d2(32'd4), // change
 	   .s(ALUSrcB),
 	   .y(SrcB)
 	);

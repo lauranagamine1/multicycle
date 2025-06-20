@@ -105,6 +105,9 @@ module mainfsm (
 
 			MEMREAD:
 			     nextstate = MEMWB;
+			MEMWRITE: 
+			     nextstate = FETCH;
+
 
 			default: nextstate = FETCH;
 		endcase

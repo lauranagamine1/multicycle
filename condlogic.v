@@ -24,69 +24,57 @@
 // Add code for the condlogic and condcheck modules. Remember, you may
 // reuse code from prior labs.
 module condlogic (
-	clk,
-	reset,
-	Cond,
-	ALUFlags,
-	FlagW,
-	PCS,
-	NextPC,
-	RegW,
-	MemW,
-	PCWrite,
-	RegWrite,
-	MemWrite
+	input wire clk,
+	input wire reset,
+	input wire [3:0] Cond,
+	input wire [3:0] ALUFlags,
+	input wire [1:0] FlagW,
+	input wire PCS,
+	input wire NextPC,
+	input wire RegW,
+	input wire MemW,
+	output wire PCWrite,
+	output wire RegWrite,
+	output wire MemWrite
 );
-	input wire clk;
-	input wire reset;
-	input wire [3:0] Cond;
-	input wire [3:0] ALUFlags;
-	input wire [1:0] FlagW;
-	input wire PCS;
-	input wire NextPC;
-	input wire RegW;
-	input wire MemW;
-	output wire PCWrite;
-	output wire RegWrite;
-	output wire MemWrite;
 	wire [1:0] FlagWrite;
 	wire [3:0] Flags;
 	wire CondEx;
+	reg CondEx_d;  // registra el CondEx
 
-	// Delay writing flags until ALUWB state
-	/*
-	flopr #(2) flagwritereg(
-		clk,
-		reset,
-		FlagW & {2 {CondEx}},
-		FlagWrite
-	);
-	*/
-
-	// ADD CODE HERE,
-	flopenr #(4) flagreg (
-	.clk(clk),
-	.reset(reset),
-	.en(|FlagWrite),
-	.d(ALUFlags),
-	.q(Flags)
-);
-
-	flopenr #(2) flagreg0(
-		.clk(clk),
-		.reset(reset),
-		.en(FlagWrite[0]),
-		.d(ALUFlags[1:0]),
-		.q(Flags[1:0])
-	);
+	// Evaluar CondEx desde flags actuales
 	condcheck cc(
 		.Cond(Cond),
 		.Flags(Flags),
 		.CondEx(CondEx)
 	);
-	assign FlagWrite = FlagW & {2 {CondEx}};
-	assign RegWrite = RegW & CondEx;
-	assign MemWrite = MemW & CondEx;
-	assign PCSrc = PCS & CondEx;
 
+	// Registro de write enable para banderas
+	flopr #(2) flagwritereg(
+		.clk(clk),
+		.reset(reset),
+		.d(FlagW & {2{CondEx}}),
+		.q(FlagWrite)
+	);
+
+	// Registro de banderas de ALU
+	flopenr #(4) flagreg(
+		.clk(clk),
+		.reset(reset),
+		.en(|FlagWrite),
+		.d(ALUFlags),
+		.q(Flags)
+	);
+
+	// Registro de CondEx (se usa un ciclo después)
+	always @(posedge clk or posedge reset)
+		if (reset)
+			CondEx_d <= 0;
+		else
+			CondEx_d <= CondEx;
+
+	// Control de señales condicionales
+	assign RegWrite  = RegW  & CondEx_d;
+	assign MemWrite  = MemW  & CondEx_d;
+	assign PCWrite   = PCS   & CondEx_d;
 endmodule
