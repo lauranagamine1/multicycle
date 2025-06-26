@@ -1,1 +1,4 @@
 # multicycle
+
+# Decode
+## Instruction Decoder
