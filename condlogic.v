@@ -76,5 +76,5 @@ module condlogic (
 	// Control de señales condicionales
 	assign RegWrite  = RegW  & CondEx_d;
 	assign MemWrite  = MemW  & CondEx_d;
-	assign PCWrite   = PCS   & CondEx_d;
+	assign PCWrite   = (PCS   & CondEx_d)|NextPC;
 endmodule
