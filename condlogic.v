@@ -41,9 +41,9 @@ module condlogic (
 	wire [3:0] Flags;
 	wire CondEx;
 	wire CondExNext;
-	reg CondEx_d;  // registra el CondEx
+	
+    assign FlagWrite = FlagW & {2 {CondEx}};
 
-	// Evaluar CondEx desde flags actuales
 	condcheck cc(
 		.Cond(Cond),
 		.Flags(Flags),
