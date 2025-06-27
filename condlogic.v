@@ -40,6 +40,7 @@ module condlogic (
 	wire [1:0] FlagWrite;
 	wire [3:0] Flags;
 	wire CondEx;
+	wire CondExNext;
 	reg CondEx_d;  // registra el CondEx
 
 	// Evaluar CondEx desde flags actuales
@@ -48,33 +49,32 @@ module condlogic (
 		.Flags(Flags),
 		.CondEx(CondEx)
 	);
-
+	
+	flopr condexnext(
+         .clk(clk),
+		.reset(reset),
+		.d(CondEx),
+		.q(CondExNext)
+	);
 	// Registro de write enable para banderas
-	flopr #(2) flagwritereg(
+	flopenr #(2) flagreg1(
 		.clk(clk),
 		.reset(reset),
-		.d(FlagW & {2{CondEx}}),
-		.q(FlagWrite)
+		.en(FlagWrite[1]),
+		.d(ALUFlags[3:2]),
+		.q(Flags[3:2])
 	);
-
-	// Registro de banderas de ALU
-	flopenr #(4) flagreg(
+	flopenr #(2) flagreg0(
 		.clk(clk),
 		.reset(reset),
-		.en(|FlagWrite),
-		.d(ALUFlags),
-		.q(Flags)
+		.en(FlagWrite[0]),
+		.d(ALUFlags[1:0]),
+		.q(Flags[1:0])
 	);
 
-	// Registro de CondEx (se usa un ciclo después)
-	always @(posedge clk or posedge reset)
-		if (reset)
-			CondEx_d <= 0;
-		else
-			CondEx_d <= CondEx;
 
 	// Control de señales condicionales
-	assign RegWrite  = RegW  & CondEx_d;
-	assign MemWrite  = MemW  & CondEx_d;
-	assign PCWrite   = (PCS   & CondEx_d)|NextPC;
+	assign RegWrite  = RegW  & CondExNext;
+	assign MemWrite  = MemW  & CondExNext;
+	assign PCWrite   = (PCS   & CondExNext)|NextPC;
 endmodule
