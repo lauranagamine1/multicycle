@@ -25,6 +25,7 @@ module decode (
 	reset,
 	Op,
 	Funct,
+	MulOp, // new for mul
 	Rd,
 	FlagW,
 	PCS,
@@ -39,6 +40,7 @@ module decode (
 	ImmSrc,
 	RegSrc,
 	ALUControl
+	
 );
 	input wire clk;
 	input wire reset;
@@ -58,6 +60,7 @@ module decode (
 	output wire [1:0] ImmSrc;
 	output wire [1:0] RegSrc;
 	output reg [2:0] ALUControl; // change
+	input  wire [3:0] MulOp;  // new
 	wire Branch;
 	wire ALUOp;
 
@@ -113,26 +116,32 @@ module decode (
 	assign {RegSrc, ImmSrc, ALUSrc, MemtoReg, RegW, MemW, Branch, ALUOp} = controls;
 	
 	// ALU DECODER
-	always @(*)
-		if (ALUOp) begin
-			casex (Funct[4:1])
-			    //4'b0001: ALUControl = 3'b100; // XOR previous func
-				4'b0100: ALUControl = 3'b000;
-				4'b0010: ALUControl = 3'b001;
-				4'b0000: ALUControl = 3'b010;
-				4'b1100: ALUControl = 3'b011;
-				4'b1001: ALUControl = 3'b100; // mul
-				4'b1010: ALUControl = 3'b101; // mov
-				
-				default: ALUControl = 3'bxxx;
-			endcase
-			FlagW[1] = Funct[0];
-			FlagW[0] = Funct[0] & ((ALUControl == 3'b000) | (ALUControl == 3'b001));
-		end
-		else begin
-			ALUControl = 3'b000;
-			FlagW = 2'b00;
-		end
+	always @(*) begin
+      if (ALUOp) begin
+        // 1) Caso especial MUL: Op=00 && Instr[7:4]==1001
+        if (Op == 2'b00 && MulOp == 4'b1001) begin
+          ALUControl = 3'b100; 
+        end
+        else begin
+          // 2) Resto de operaciones Data-Processing
+          casex (Funct[4:1])
+            4'b0100: ALUControl = 3'b000; // ADD
+            4'b0010: ALUControl = 3'b001; // SUB
+            4'b0000: ALUControl = 3'b010; // AND
+            4'b1100: ALUControl = 3'b011; // ORR
+            4'b1101: ALUControl = 3'b101; // MOV
+            default: ALUControl = 3'bxxx;
+          endcase
+        end
+        // actualización de flags (igual que antes)
+        FlagW[1] = Funct[0];
+        FlagW[0] = Funct[0] & ((ALUControl == 3'b000) || (ALUControl == 3'b001));
+      end
+      else begin
+        ALUControl = 3'b000;
+        FlagW      = 2'b00;
+      end
+    end
 		
 	// CONDICIONES PC
 	assign PCS = ((Rd == 4'b1111) & RegW) | Branch;
