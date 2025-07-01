@@ -43,12 +43,11 @@ class ARM_Assembler:
             "AND": 0b0000,
             "SUB": 0b0010,
             "ADD": 0b0100,
-            "ORR": 0b1100, #not yet
-            "MOV": 0b1101,
-            "LSL": 0b1101, #not yet
-            "LSR": 0b1101, #not yet
+            "ORR": 0b1100,
+            "MOV": 0b1010,   
             "MUL": 0b1001,
-        }
+            }
+
         self.mem_instr = {
             "STR": 0b00,
             "LDR": 0b01,
@@ -178,22 +177,27 @@ class ARM_Assembler:
             # If you are not using the standard CPU-lator encoding for 'MUL' remove the following condicional
             #
             if instr == "MUL":
-                if len(regs) != 3 and (len(imms) == 0):
-                    raise RuntimeError(
-                        f" {instr} format invalid. Should be : {instr} Rd, Rm, Rn"
-                    )
-                Rd, Rm, Rs = regs
+                if len(regs) != 3:
+                    raise RuntimeError(f"MUL requiere 3 registros: Rd, Rn, Rm")
+                Rd, Rn, Rm = regs
+                cmd = self.dp_instr[instr]   # 0b1001
+                # Formato MUL:
+                #   cond[31:28],
+                #   00[27:26],
+                #   opcode[24:21] = cmd,
+                #   Rn[19:16],
+                #   Rd[15:12],
+                #   réplica opcode[7:4] = cmd,
+                #   Rm[3:0]
                 return (
-                    (self.conds[cond] << 28)
-                    | (0 << 27)
-                    | (0 << 26)
-                    | (Rs << 8)
-                    | (Rd << 16)
-                    | (0b1001 << 4)
-                    | Rm
-                    )
-                    
-
+                    (self.conds[cond] << 28)  |  # condición
+                    (0b00            << 26)  |  # Data-Processing
+                    (cmd             << 21)  |  # opcode bits [24:21]
+                    (Rn              << 16)  |  # Rn
+                    (Rd              << 12)  |  # Rd
+                    (cmd             << 4 )  |  # replica opcode en [7:4]
+                    (Rm)                       # Rm
+                )
 
 
             if instr in ["LSL", "LSR"]:
