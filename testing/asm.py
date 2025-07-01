@@ -178,22 +178,19 @@ class ARM_Assembler:
             # If you are not using the standard CPU-lator encoding for 'MUL' remove the following condicional
             #
             if instr == "MUL":
-            # MUL Rd, Rm, Rs  -> Rd = Rm * Rs, sin acumular ni actualizar flags
-                if len(regs) != 3:
-                    raise RuntimeError(f"{instr} format invalid. Should be: {instr} Rd, Rm, Rs")
+                if len(regs) != 3 and (len(imms) == 0):
+                    raise RuntimeError(
+                        f" {instr} format invalid. Should be : {instr} Rd, Rm, Rn"
+                    )
                 Rd, Rm, Rs = regs
                 return (
-                        (self.conds[cond] << 28)   # cond[31:28]
-                        # bits27-22 = 000000 (formato multiply)
-                        # bit21 A = 0 (no accumulate)
-                        # bit20 S = 0 (no flags)
-                        | (0 << 21)
-                        | (0 << 20)
-                        | (0 << 16)                # Rn = 0
-                        | (Rd << 12)               # Rd[15:12]
-                        | (Rs << 8)                # Rs[11:8]
-                        | (0b1001 << 4)            # opcode “1001” en bits[7:4]
-                        | Rm                       # Rm[3:0]
+                    (self.conds[cond] << 28)
+                    | (0 << 27)
+                    | (0 << 26)
+                    | (Rs << 8)
+                    | (Rd << 16)
+                    | (0b1001 << 4)
+                    | Rm
                     )
                     
 
