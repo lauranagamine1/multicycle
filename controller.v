@@ -39,7 +39,7 @@ module controller (
 );
 	input wire clk;
 	input wire reset;
-	input wire [31:0] Instr;
+	input wire [31:12] Instr;
 	input wire [3:0] ALUFlags;
 	output wire PCWrite;
 	output wire MemWrite;
@@ -62,7 +62,6 @@ module controller (
 		.reset(reset),
 		.Op(Instr[27:26]),
 		.Funct(Instr[25:20]),
-		.MulOp(Instr[7:4]), // new
 		.Rd(Instr[15:12]),
 		.FlagW(FlagW),
 		.PCS(PCS),
