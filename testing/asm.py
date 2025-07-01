@@ -46,6 +46,7 @@ class ARM_Assembler:
             "ORR": 0b1100,
             "MOV": 0b1010,   
             "MUL": 0b1001,
+            "DIV": 0b1011,
             }
 
         self.mem_instr = {

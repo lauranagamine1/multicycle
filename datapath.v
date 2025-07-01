@@ -62,7 +62,7 @@ module datapath (
 	input wire [1:0] ALUSrcB;
 	input wire [1:0] ResultSrc;
 	input wire [1:0] ImmSrc;
-	input wire [2:0] ALUControl;
+	input wire [3:0] ALUControl;
 	wire [31:0] PCNext;
 	wire [31:0] PC;
 	wire [31:0] ExtImm;
@@ -77,7 +77,7 @@ module datapath (
 	wire [31:0] ALUOut;
 	wire [3:0] RA1;
 	wire [3:0] RA2;
-
+    wire [31:0] ALUResult2;
 	assign PCNext = Result;
 
 	// Your datapath hardware goes below. Instantiate each of the 
@@ -171,6 +171,7 @@ module datapath (
 		.SrcB(SrcB),
 		.ALUControl(ALUControl),
 		.Result(ALUResult),
+		.Result2(ALUResult2),
 		.ALUFlags(ALUFlags)
 	);
 	flopr #(32) aluout(
