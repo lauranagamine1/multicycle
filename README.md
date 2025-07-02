@@ -29,10 +29,12 @@
 | 1     | 1100           | 1          | ORR    | 0011 (Or)       | 10        |
 | 1     | 1001           | 0          | MUL    | 0100 (Mul)      | 00        |
 | 1     | 1001           | 1          | MUL    | 0100 (Mul)      | 10        |
-| 1     | 0111           | 0          | DIV    | 0100 (Div)      | 00        |
-| 1     | 0111           | 1          | DIV    | 0100 (Div)      | 10        |
-| 1     | 1001           | 0          | MUL    | 0100 (Mul)      | 00        |
-| 1     | 1001           | 1          | MUL    | 0100 (Mul)      | 10        |
+| 1     | 1011           | 0          | DIV    | 0111 (Div)      | 00        |
+| 1     | 1011           | 1          | DIV    | 0111 (Div)      | 10        |
+| 1     | XXXX           | 0          | UMULL  | 0110 (Umull)    | 00        |
+| 1     | XXXX           | 1          | UMULL  | 0110 (Umull)    | 10        |
+| 1     | XXXX           | 0          | SMULL  | 1000 (Smull)    | 00        |
+| 1     | XXXX           | 1          | SMULL  | 1000 (Smull)    | 10        |
 
 ### ALU Operations y ALUControl Encodings
 
