@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
+// op mul
 module decode (
 	clk,
 	reset,
@@ -57,7 +57,7 @@ module decode (
 	output wire [1:0] ALUSrcB;
 	output wire [1:0] ImmSrc;
 	output wire [1:0] RegSrc;
-	output reg [2:0] ALUControl; // change
+	output reg [3:0] ALUControl; // change
 	wire Branch;
 	wire ALUOp;
 
@@ -116,21 +116,21 @@ module decode (
 	always @(*)
 		if (ALUOp) begin
 			casex (Funct[4:1])
-			    //4'b0001: ALUControl = 3'b100; // XOR previous func
-				4'b0100: ALUControl = 3'b000;
-				4'b0010: ALUControl = 3'b001;
-				4'b0000: ALUControl = 3'b010;
-				4'b1100: ALUControl = 3'b011;
-				4'b1001: ALUControl = 3'b100; // mul
-				4'b1010: ALUControl = 3'b101; // mov
+				4'b0100: ALUControl = 4'b0000; // add
+				4'b0010: ALUControl = 4'b0001; // SUB
+				4'b0000: ALUControl = 4'b0010; // and
+				4'b1100: ALUControl = 4'b0011;
+				4'b1001: ALUControl = 4'b0100; // mul
+				4'b1010: ALUControl = 4'b0101; // mov
+				4'b1011:ALUControl = 4'b0111; // div
 				
-				default: ALUControl = 3'bxxx;
+				default: ALUControl = 4'bxxxx;
 			endcase
 			FlagW[1] = Funct[0];
-			FlagW[0] = Funct[0] & ((ALUControl == 3'b000) | (ALUControl == 3'b001));
+			FlagW[0] = Funct[0] & ((ALUControl == 4'b0000) | (ALUControl == 4'b0001));
 		end
 		else begin
-			ALUControl = 3'b000;
+			ALUControl = 4'b0000;
 			FlagW = 2'b00;
 		end
 		
