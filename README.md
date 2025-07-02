@@ -32,11 +32,12 @@
 
 ### ALU Operations y ALUControl Encodings
 
-| Operación | ALUControl (2:0) | Descripción               |
+| Operación | ALUControl 3:0) | Descripción               |
 |:---------:|:----------------:|:-------------------------:|
-| **ADD**   | `000`            | `Result = SrcA + SrcB`    |
-| **SUB**   | `001`            | `Result = SrcA - SrcB`    |
-| **AND**   | `010`            | `Result = SrcA & SrcB`    |
-| **OR**    | `011`            | `Result = SrcA \| SrcB`   |
-| **MUL**   | `100`            | `Result = SrcA * SrcB`    |
-| **MOV**   | `101`            | `Result = SrcB`           |
+| **ADD**   | `0000`            | `Result = SrcA + SrcB`    |
+| **SUB**   | `0001`            | `Result = SrcA - SrcB`    |
+| **AND**   | `0010`            | `Result = SrcA & SrcB`    |
+| **OR**    | `0011`            | `Result = SrcA \| SrcB`   |
+| **MUL**   | `0100`            | `Result = SrcA * SrcB`    |
+| **MOV**   | `0101`            | `Result = SrcB`           |
+| **DIV**   | `0111`            | `Result = SrcA / SrcB`    |
