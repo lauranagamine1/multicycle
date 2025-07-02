@@ -47,5 +47,5 @@
 | **MUL**   | `0100`            | `Result = SrcA * SrcB`    |
 | **MOV**   | `0101`            | `Result = SrcB`           |
 | **DIV**   | `0111`            | `Result = SrcA / SrcB`    |
-| **UMULL** | `0110`            | `Result = SrcA / SrcB`    |
-| **SMULL** | `1000`            | `Result = SrcA / SrcB`    |
+| **UMULL** | `0110`            | `Result = SrcA * SrcB`    |
+| **SMULL** | `1000`            | `Result = SrcA * SrcB`    |
