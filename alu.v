@@ -19,8 +19,9 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module alu(input [31:0] SrcA, input [31:0] SrcB,
-            input [3:0] ALUControl, // change
+module alu(input [31:0] SrcA, 
+            input [31:0] SrcB,
+            input [3:0] ALUControl,
             output reg [31:0] Result,
             output reg [31:0] Result2,
             output wire [3:0] ALUFlags
@@ -29,34 +30,42 @@ module alu(input [31:0] SrcA, input [31:0] SrcB,
     wire neg, zero, carry, overflow;
     wire [31:0] condinvb;
     wire [32:0] sum;
-    //wire [63:0] mul_res;
+    reg [63:0] mul_res; 
 
     assign condinvb = ALUControl[0] ? ~SrcB : SrcB;
     assign sum = SrcA + condinvb + ALUControl[0];
 
     always @(*)
     begin
+        // valores por defecto para evitar latches
         casex (ALUControl[3:0])
-            4'b000?: Result = sum;  // ADD, SUB
-            4'b0010: Result = SrcA & SrcB; // AND
-            4'b0011: Result = SrcA | SrcB; // OR
-            4'b0100: Result = SrcA * SrcB; // MUL
+            4'b000?: Result = sum;      // ADD, SUB
+            4'b0010: Result = SrcA & SrcB;   // AND
+            4'b0011: Result = SrcA | SrcB;   // OR
+            4'b0100: Result = SrcA * SrcB;    // MUL
             4'b0101: Result = SrcB;   // MOV
-            //4'b0101: {Result2, Result} = SrcA * SrcB; // UMULL (unsigned)
-            //4'b0110: {Result2, Result} = $signed(SrcA) * $signed(SrcB); // SMULL (signed)
-            4'b0111: Result = SrcA / SrcB; // DIV
+            4'b0111: Result  = SrcA / SrcB;   // div
             
-            default: begin
-                //Result = 32'b0;
-                Result2 = 32'b0;
-            end
+            // Result2 = 32 bits mas sig, Result = 32 bits menos significativos
+            4'b0110: begin
+                mul_res = SrcA * SrcB; // UMULL (unsigned)
+                Result = mul_res[31:0];
+                Result2 = mul_res[63:32];
+                end
+            4'b1000: begin
+                mul_res = $signed(SrcA) * $signed(SrcB); // SMULL (signed)
+                Result2 = mul_res[63:32];
+                Result = mul_res[31:0];
+                end
         endcase
     end
+    
+
     
     assign neg = Result[31];
     assign zero = (Result == 32'b0);
     assign carry = (ALUControl[1] ==1'b0)& sum[32];
     assign overflow = (ALUControl[1] ==1'b0)& ~(SrcA[31] ^ SrcB[31] ^ALUControl[0]) & (SrcA[31]^ sum[31]);
     assign ALUFlags = {neg, zero, carry,overflow};
-
+    
 endmodule

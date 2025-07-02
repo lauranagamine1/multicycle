@@ -44,7 +44,8 @@ module datapath (
 	ALUSrcB,
 	ResultSrc,
 	ImmSrc,
-	ALUControl
+	ALUControl,
+	is_mul
 );
 	input wire clk;
 	input wire reset;
@@ -79,7 +80,7 @@ module datapath (
 	wire [3:0] RA2;
     wire [31:0] ALUResult2;
     wire [31:0] ALUHigh;
-    wire is_mul = (Instr[7:4]  == 4'b1001);; // new
+    input wire is_mul = (Instr[7:4]  == 4'b1001); // new
     // input wire is_mul = (Instr[7:4] == 4'b1001);
 	assign PCNext = Result;
 
@@ -129,8 +130,7 @@ module datapath (
 		.y(RA2)
 	);
 	
-	  
-	
+
 	regfile rf(
 		.clk(clk),
 		.we3(RegWrite),
@@ -145,6 +145,7 @@ module datapath (
 		.rd2(RD2),
 		.is_mul(is_mul)
 	);
+	
 	
 	flopr #(32) aflop(
 		.clk(clk),

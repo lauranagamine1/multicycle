@@ -52,12 +52,13 @@ module regfile (
 	
 	input wire is_mul;
 	
-	
 	always @(posedge clk) begin
-		if (we3)
+		if (we3) begin
 			rf[wa3] <= wd3;
-			if(is_mul)
-			     rf[wa4] <= wd4;
+			if(is_mul) begin
+			   rf[wa4] <= wd4;
+			end
+	    end
     end
     
 	assign rd1 = (ra1 == 4'b1111 ? r15 : rf[ra1]);

@@ -35,7 +35,8 @@ module controller (
 	ALUSrcB,
 	ResultSrc,
 	ImmSrc,
-	ALUControl
+	ALUControl,
+	is_mul
 );
 	input wire clk;
 	input wire reset;
@@ -52,11 +53,13 @@ module controller (
 	output wire [1:0] ResultSrc;
 	output wire [1:0] ImmSrc;
 	output wire [3:0] ALUControl; //modificación a 3 bits el ALUControl
+	output wire is_mul; // new
 	wire [1:0] FlagW;
 	wire PCS;
 	wire NextPC;
 	wire RegW;
 	wire MemW;
+	
 	decode dec(
 		.clk(clk),
 		.reset(reset),
@@ -76,7 +79,8 @@ module controller (
 		.ALUSrcB(ALUSrcB),
 		.ImmSrc(ImmSrc),
 		.RegSrc(RegSrc),
-		.ALUControl(ALUControl)
+		.ALUControl(ALUControl),
+		.is_mul(is_mul)
 	);
 	condlogic cl(
 		.clk(clk),

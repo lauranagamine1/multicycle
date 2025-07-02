@@ -39,7 +39,8 @@ module decode (
 	ALUSrcB,
 	ImmSrc,
 	RegSrc,
-	ALUControl
+	ALUControl,
+	is_mul
 );
 	input wire clk;
 	input wire reset;
@@ -63,9 +64,11 @@ module decode (
 	wire Branch;
 	wire ALUOp;
 
-	wire is_mul = (Instr[7:4] == 4'b1001); // te dice si es mul: umul o smul
-    wire is_umull = is_mul && (Instr[22] == 1'b0);
-    wire is_smull = is_mul && (Instr[22] == 1'b1);
+	output wire is_mul; // te dice si es mul: umul o smul
+	assign is_mul = Instr[7:4] == 4'b1001 ? 1:0;
+	
+    wire is_umull = is_mul && (Instr[20] == 1'b0);
+    wire is_smull = is_mul && (Instr[20] == 1'b1);
 
 	// Main FSM
 	mainfsm fsm(
@@ -125,7 +128,6 @@ module decode (
                  ALUControl = 4'b1000;  // SMULL
           end
                 
-    
             else begin
             
 			casex (Funct[4:1])
@@ -148,8 +150,6 @@ module decode (
 			FlagW = 2'b00;
 		end
 		
-	assign ResultSrc = (ALUOp && is_umull)  ? 2'b10 :
-                   (ALUOp && is_smull) ? 2'b11 : 2'b00;
 		
 	// CONDICIONES PC
 	assign PCS = ((Rd == 4'b1111) & RegW) | Branch;

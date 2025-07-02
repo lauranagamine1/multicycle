@@ -46,6 +46,8 @@ module arm (
 	wire [1:0] ImmSrc;
 	wire [3:0] ALUControl; //modificación del ALUControl a 3 bits
 	wire [1:0] ResultSrc;
+	
+	wire is_mul;
 	controller c(
 		.clk(clk),
 		.reset(reset),
@@ -61,7 +63,8 @@ module arm (
 		.ALUSrcB(ALUSrcB),
 		.ResultSrc(ResultSrc),
 		.ImmSrc(ImmSrc),
-		.ALUControl(ALUControl)
+		.ALUControl(ALUControl),
+	    .is_mul(is_mul)
 	);
 	datapath dp(
 		.clk(clk),
@@ -80,6 +83,7 @@ module arm (
 		.ALUSrcB(ALUSrcB),
 		.ResultSrc(ResultSrc),
 		.ImmSrc(ImmSrc),
-		.ALUControl(ALUControl)
+		.ALUControl(ALUControl),
+		.is_mul(is_mul)
 	);
 endmodule
