@@ -34,7 +34,8 @@ module mainfsm (
 	RegW,
 	MemW,
 	Branch,
-	ALUOp
+	ALUOp,
+	is_mul
 );
 	input wire clk;
 	input wire reset;
@@ -45,6 +46,7 @@ module mainfsm (
 	output wire [1:0] ALUSrcA;
 	output wire [1:0] ALUSrcB;
 	output wire [1:0] ResultSrc;
+	input wire is_mul; // new
 	output wire NextPC;
 	output wire RegW;
 	output wire MemW;
@@ -65,6 +67,8 @@ module mainfsm (
     localparam [3:0] MEMWB = 4;
     localparam [3:0] MEMWRITE = 5;
     localparam [3:0] ALUWB = 8;
+    localparam [3:0] MULL = 11; // new state
+
 
 	// state register
 	always @(posedge clk or posedge reset)
@@ -83,16 +87,20 @@ module mainfsm (
 		casex (state)
 			FETCH: nextstate = DECODE;
 			DECODE:
-				case (Op)
-					2'b00:
-						if (Funct[5])
-							nextstate = EXECUTEI;
-						else
-							nextstate = EXECUTER;
-					2'b01: nextstate = MEMADR;
-					2'b10: nextstate = BRANCH;
-					default: nextstate = UNKNOWN;
-				endcase
+                if (is_mul)
+                    nextstate = MULL;
+                else case (Op)
+                    2'b00:
+                        if (Funct[5])
+                            nextstate = EXECUTEI;
+                        else
+                            nextstate = EXECUTER;
+                    2'b01: nextstate = MEMADR;
+                    2'b10: nextstate = BRANCH;
+                    default: nextstate = UNKNOWN;
+                endcase
+            MULL: nextstate = ALUWB; // new, or fetch?
+            
 			EXECUTER:
 			     nextstate = ALUWB;
 			EXECUTEI:
@@ -102,7 +110,7 @@ module mainfsm (
                     nextstate = MEMWRITE; // STR
                 else
                     nextstate = MEMREAD;  // LDR
-
+            MEMWB:  nextstate = FETCH;   // <-- aquí lo añades
 			MEMREAD:
 			     nextstate = MEMWB;
 			MEMWRITE: 
@@ -129,6 +137,7 @@ module mainfsm (
             EXECUTEI: controls = 13'b0000000000011;
             ALUWB: controls = 13'b0001000000000;
             BRANCH: controls = 13'b0100001000010;
+            MULL: controls = 13'b0001000000001; //  escribe en registro, ALUOp=0
 			default: controls = 13'bxxxxxxxxxxxxx;
 		endcase
 	assign {NextPC, Branch, MemW, RegW, IRWrite, AdrSrc, ResultSrc, ALUSrcA, ALUSrcB, ALUOp} = controls;
