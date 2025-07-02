@@ -39,7 +39,7 @@ module controller (
 );
 	input wire clk;
 	input wire reset;
-	input wire [31:12] Instr;
+	input wire [31:0] Instr;
 	input wire [3:0] ALUFlags;
 	output wire PCWrite;
 	output wire MemWrite;
@@ -51,7 +51,7 @@ module controller (
 	output wire [1:0] ALUSrcB;
 	output wire [1:0] ResultSrc;
 	output wire [1:0] ImmSrc;
-	output wire [2:0] ALUControl; //modificación a 3 bits el ALUControl
+	output wire [3:0] ALUControl; //modificación a 3 bits el ALUControl
 	wire [1:0] FlagW;
 	wire PCS;
 	wire NextPC;
@@ -62,6 +62,7 @@ module controller (
 		.reset(reset),
 		.Op(Instr[27:26]),
 		.Funct(Instr[25:20]),
+		.Instr(Instr), // new
 		.Rd(Instr[15:12]),
 		.FlagW(FlagW),
 		.PCS(PCS),

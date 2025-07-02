@@ -78,6 +78,9 @@ module datapath (
 	wire [3:0] RA1;
 	wire [3:0] RA2;
     wire [31:0] ALUResult2;
+    wire [31:0] ALUHigh;
+    wire is_mul = (Instr[7:4]  == 4'b1001);; // new
+    // input wire is_mul = (Instr[7:4] == 4'b1001);
 	assign PCNext = Result;
 
 	// Your datapath hardware goes below. Instantiate each of the 
@@ -125,17 +128,24 @@ module datapath (
 		.s(RegSrc[1]),
 		.y(RA2)
 	);
+	
+	  
+	
 	regfile rf(
 		.clk(clk),
 		.we3(RegWrite),
 		.ra1(RA1),
 		.ra2(RA2),
-		.wa3(Instr[15:12]),
+		.wa3(Instr[15:12]), // rdlo
+		.wa4(Instr[19:16]), // rdhi
 		.wd3(Result),
+		.wd4(ALUResult2),
 		.r15(Result),
 		.rd1(RD1),
-		.rd2(RD2)
+		.rd2(RD2),
+		.is_mul(is_mul)
 	);
+	
 	flopr #(32) aflop(
 		.clk(clk),
 		.reset(reset),
@@ -174,6 +184,7 @@ module datapath (
 		.Result2(ALUResult2),
 		.ALUFlags(ALUFlags)
 	);
+	
 	flopr #(32) aluout(
 		.clk(clk),
 		.reset(reset),
