@@ -382,7 +382,8 @@ if __name__ == "__main__":
     print("\n== Instructions ==")
     for i, instr in enumerate(instrs):
         text = extract[i].lstrip().ljust(18)
-        print(f"{i:02d} {text} : 0x{instr:08X}")
+        binstr = f"{instr:032b}"
+        print(f"{i:02d} {text} : 0x{instr:08X}  b{binstr}") # para mostrar binario
 
     with open(output_file, "w") as f:
         for instr in instrs:
