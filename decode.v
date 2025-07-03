@@ -85,22 +85,24 @@ module decode (
 		.RegW(RegW),
 		.MemW(MemW),
 		.Branch(Branch),
-		.ALUOp(ALUOp)
+		.ALUOp(ALUOp),
+		.is_mul(is_mul)
 	);
 
 	// ALU Decoder
 
 	// PC Logic
-	// Add code for the Instruction Decoder (Instr Decoder) below.
-	// Recall that the input to Instr Decoder is Op, and the outputs are
-	// ImmSrc and RegSrc. We've completed the ImmSrc logic for you.
 
 	// INSTR DECODER
 	assign ImmSrc = Op;
 	reg [9:0] controls;
 
 	always @(*)
+	   if (is_mul)
+		  controls =10'b0000001001;
+		 else
 		casex (Op)
+		
 			2'b00:
 				if (Funct[5])
 					controls = 10'b0000101001;
@@ -117,8 +119,9 @@ module decode (
 	assign {RegSrc, ImmSrc, ALUSrc, MemtoReg, RegW, MemW, Branch, ALUOp} = controls;
 	
 	// ALU DECODER
-	always @(*)
 	
+	always @(*)
+	   
 		if (ALUOp) begin
 		// umull
 		  if (is_umull) begin

@@ -67,7 +67,7 @@ module mainfsm (
     localparam [3:0] MEMWB = 4;
     localparam [3:0] MEMWRITE = 5;
     localparam [3:0] ALUWB = 8;
-    localparam [3:0] MULL = 11; // new state
+    //localparam [3:0] MULL = 11; // new state
 
 
 	// state register
@@ -87,9 +87,8 @@ module mainfsm (
 		casex (state)
 			FETCH: nextstate = DECODE;
 			DECODE:
-                if (is_mul)
-                    nextstate = MULL;
-                else case (Op)
+
+                 case (Op)
                     2'b00:
                         if (Funct[5])
                             nextstate = EXECUTEI;
@@ -99,10 +98,11 @@ module mainfsm (
                     2'b10: nextstate = BRANCH;
                     default: nextstate = UNKNOWN;
                 endcase
-            MULL: nextstate = ALUWB; // new, or fetch?
+            //MULL: nextstate = ALUWB; // new
             
 			EXECUTER:
-			     nextstate = ALUWB;
+             nextstate = ALUWB;
+			     
 			EXECUTEI:
 			     nextstate = ALUWB;
 			MEMADR:
@@ -110,7 +110,7 @@ module mainfsm (
                     nextstate = MEMWRITE; // STR
                 else
                     nextstate = MEMREAD;  // LDR
-            MEMWB:  nextstate = FETCH;   // <-- aquí lo añades
+            MEMWB:  nextstate = FETCH;  
 			MEMREAD:
 			     nextstate = MEMWB;
 			MEMWRITE: 
@@ -119,10 +119,6 @@ module mainfsm (
 
 			default: nextstate = FETCH;
 		endcase
-
-	// ADD CODE BELOW
-	// Finish entering the output logic below.  We've entered the
-	// output logic for the first two states, FETCH and DECODE, for you.
 
 	// state-dependent output logic
 	always @(*)
@@ -137,7 +133,8 @@ module mainfsm (
             EXECUTEI: controls = 13'b0000000000011;
             ALUWB: controls = 13'b0001000000000;
             BRANCH: controls = 13'b0100001000010;
-            MULL: controls = 13'b0001000000001; //  escribe en registro, ALUOp=0
+            
+            //MULL: controls = 13'b000100000001; //  escribe en registro, ALUOp=0
 			default: controls = 13'bxxxxxxxxxxxxx;
 		endcase
 	assign {NextPC, Branch, MemW, RegW, IRWrite, AdrSrc, ResultSrc, ALUSrcA, ALUSrcB, ALUOp} = controls;

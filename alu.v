@@ -23,8 +23,8 @@ module alu(input [31:0] SrcA,
             input [31:0] SrcB,
             input [3:0] ALUControl,
             output reg [31:0] Result,
-            output reg [31:0] Result2,
-            output wire [3:0] ALUFlags
+            output wire [3:0] ALUFlags,
+            output reg [31:0] Result2
             );
 
     wire neg, zero, carry, overflow;
@@ -53,14 +53,13 @@ module alu(input [31:0] SrcA,
                 Result2 = mul_res[63:32];
                 end
             4'b1000: begin
-                mul_res = $signed(SrcA) * $signed(SrcB); // SMULL (signed)
+                mul_res = $signed(SrcA)*$signed(SrcB); // SMULL (signed)
                 Result2 = mul_res[63:32];
                 Result = mul_res[31:0];
                 end
         endcase
     end
     
-
     
     assign neg = Result[31];
     assign zero = (Result == 32'b0);

@@ -27,6 +27,7 @@
 // it is composed of instances of its sub-modules. For example,
 // the instruction register is instantiated as a 32-bit flopenr.
 // The other submodules are likewise instantiated. 
+
 module datapath (
 	clk,
 	reset,
@@ -47,6 +48,7 @@ module datapath (
 	ALUControl,
 	is_mul
 );
+
 	input wire clk;
 	input wire reset;
 	output wire [31:0] Adr;
@@ -77,7 +79,17 @@ module datapath (
 	wire [31:0] ALUResult;
 	wire [31:0] ALUOut;
 	wire [3:0] RA1;
+	wire [3:0] RA1_prev;
+	
+	
 	wire [3:0] RA2;
+	wire [3:0] RA2_prev;
+	// new
+	wire[3:0] RA3;
+	wire [3:0] RA3_prev;
+	//rra4wire[3:0] RA4;
+	wire [3:0] RA4_prev;
+	
     wire [31:0] ALUResult2;
     wire [31:0] ALUHigh;
     input wire is_mul = (Instr[7:4]  == 4'b1001); // new
@@ -117,12 +129,14 @@ module datapath (
 		.d(ReadData),
 		.q(Data)
 	);
+	
 	mux2 #(4) ra1mux(
 		.d0(Instr[19:16]),
-		.d1(4'b1111),
+		.d1(4'b1111), // r15
 		.s(RegSrc[0]),
-		.y(RA1)
+		.y(RA1_prev)
 	);
+	
 	mux2 #(4) ra2mux(
 		.d0(Instr[3:0]),
 		.d1(Instr[15:12]),
@@ -130,14 +144,37 @@ module datapath (
 		.y(RA2)
 	);
 	
-
+	// new  RM
+	mux2 #(4) ra1mux_new(
+	   .d1(Instr[11:8]),
+	   .d0(RA1_prev),
+	   .s(is_mul),
+	   .y(RA1)
+	);
+	
+	//Rn
+	mux2 #(4) ra2mux_new(
+	   .d1(Instr[3:0]),
+	   .d0(RA2_prev),
+	   .s(is_mul),
+	   .y(RA2)
+	);
+	
+	//ra
+	mux2 #(4) ra3mux(
+	   .d0(Instr[15:12]), 
+	   .d1(Instr[15:12]),
+	   .s(is_mul),
+	   .y(RA3)
+	);
+    //ra = instr
 	regfile rf(
 		.clk(clk),
 		.we3(RegWrite),
 		.ra1(RA1),
 		.ra2(RA2),
-		.wa3(Instr[15:12]), // rdlo
-		.wa4(Instr[19:16]), // rdhi
+		.wa3(RA3), 
+		.wa4(Instr[19:16]), // rd
 		.wd3(Result),
 		.wd4(ALUResult2),
 		.r15(Result),
@@ -145,7 +182,6 @@ module datapath (
 		.rd2(RD2),
 		.is_mul(is_mul)
 	);
-	
 	
 	flopr #(32) aflop(
 		.clk(clk),
@@ -182,8 +218,8 @@ module datapath (
 		.SrcB(SrcB),
 		.ALUControl(ALUControl),
 		.Result(ALUResult),
-		.Result2(ALUResult2),
-		.ALUFlags(ALUFlags)
+		.ALUFlags(ALUFlags),
+		.Result2(ALUResult2)
 	);
 	
 	flopr #(32) aluout(
