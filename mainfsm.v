@@ -87,14 +87,8 @@ module mainfsm (
 		casex (state)
 			FETCH: nextstate = DECODE;
 			DECODE:
-<<<<<<< HEAD
 
                  case (Op)
-=======
-                if (is_mul)
-                    nextstate = MULL; //esta raro esto, acá posiblemente puede haber un error. Preguntale al profe
-                else case (Op)
->>>>>>> 30590a45406861df3626cdf42833e87936e08b51
                     2'b00:
                         if (Funct[5])
                             nextstate = EXECUTEI;
@@ -104,7 +98,7 @@ module mainfsm (
                     2'b10: nextstate = BRANCH;
                     default: nextstate = UNKNOWN;
                 endcase
-            //MULL: nextstate = ALUWB; // new
+            //MULL: nextstate = ALUWB; // new, or fetch?
             
 			EXECUTER:
              nextstate = ALUWB;
@@ -116,7 +110,7 @@ module mainfsm (
                     nextstate = MEMWRITE; // STR
                 else
                     nextstate = MEMREAD;  // LDR
-            MEMWB:  nextstate = FETCH;  
+            MEMWB:  nextstate = FETCH;   // <-- aquí lo añades
 			MEMREAD:
 			     nextstate = MEMWB;
 			MEMWRITE: 
@@ -139,12 +133,8 @@ module mainfsm (
             EXECUTEI: controls = 13'b0000000000011;
             ALUWB: controls = 13'b0001000000000;
             BRANCH: controls = 13'b0100001000010;
-<<<<<<< HEAD
             
             //MULL: controls = 13'b000100000001; //  escribe en registro, ALUOp=0
-=======
-            MULL: controls = 13'b0001000000001; //  escribe en registro, ALUOp=0 //Esta raro ya que RegW y ALUOP están activados al mismo tiempo, tmb si puedes preguntas
->>>>>>> 30590a45406861df3626cdf42833e87936e08b51
 			default: controls = 13'bxxxxxxxxxxxxx;
 		endcase
 	assign {NextPC, Branch, MemW, RegW, IRWrite, AdrSrc, ResultSrc, ALUSrcA, ALUSrcB, ALUOp} = controls;
