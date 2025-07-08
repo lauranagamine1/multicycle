@@ -80,6 +80,8 @@ module datapath (
 	wire [31:0] ALUOut;
 	wire [3:0] RA1;
 	wire [3:0] RA1_prev;
+	//wire [31:0] FPUResult; salida del FPU
+	//wire [31:0] FPUOut; salida del flop donde entra FPUResult
 	
 	
 	wire [3:0] RA2;
@@ -218,6 +220,8 @@ module datapath (
 		.ALUFlags(ALUFlags),
 		.Result2(ALUResult2)
 	);
+	//aquí eestaría el FPU en el cuál entra SrcA, 
+	//SrcB y saldría FPUResult
 	
 	flopr #(32) aluout(
 		.clk(clk),
@@ -225,6 +229,15 @@ module datapath (
 		.d(ALUResult),
 		.q(ALUOut)
 	);
+	
+	//	flopr #(32) fpuout(
+//		.clk(clk),
+//  		.reset(reset),
+//		.d(FPUResult),    Aquí está el flipflop donde entra el FPUResult y sale FPUOut
+//		.q(FPUOut)
+//	);
+
+	
 	mux3 #(32) resultmux(
 	   .d0(ALUOut),
 	   .d1(Data),
@@ -232,4 +245,13 @@ module datapath (
 	   .s(ResultSrc),
 	   .y(Result)
 	);
+	
+//	mux4 #(32) resultmux(
+//	   .d0(ALUOut),
+//	   .d1(Data),
+//	   .d2(ALUResult),   Aquí está el último mux que reemplazaría al resultmux 3:1
+//     	   .d3(FPUOut),
+//	   .s(ResultSrc),
+//	   .y(Result)
+//	);
 endmodule
