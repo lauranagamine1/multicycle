@@ -86,12 +86,8 @@ module datapath (
 	wire [3:0] RA2_prev;
 	// new
 	wire[3:0] RA3;
-	wire [3:0] RA3_prev;
-	//rra4wire[3:0] RA4;
-	wire [3:0] RA4_prev;
 	
     wire [31:0] ALUResult2;
-    wire [31:0] ALUHigh;
     input wire is_mul = (Instr[7:4]  == 4'b1001); // new
     // input wire is_mul = (Instr[7:4] == 4'b1001);
 	assign PCNext = Result;
@@ -141,7 +137,7 @@ module datapath (
 		.d0(Instr[3:0]),
 		.d1(Instr[15:12]),
 		.s(RegSrc[1]),
-		.y(RA2)
+		.y(RA2_prev)
 	);
 	
 	// new  RM
@@ -151,6 +147,7 @@ module datapath (
 	   .s(is_mul),
 	   .y(RA1)
 	);
+	
 	
 	//Rn
 	mux2 #(4) ra2mux_new(
