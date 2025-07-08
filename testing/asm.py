@@ -158,8 +158,8 @@ class ARM_Assembler:
                     (0b00 << 26)             |
                     (0 << 25)                |  # I=0
                     (0 << 24)                |  # A=0
-                    (0 << 23)                |  # reservado
-                    (0 << 21)                |  # S=0
+                    (0 << 21)                |  # reservado
+                    (0 << 20)                |  # S=0
                     (RdHi << 16)             |
                     (RdLo << 12)             |
                     (Rs << 8)                |
@@ -177,8 +177,8 @@ class ARM_Assembler:
                     (0b00 << 26)             |
                     (0 << 25)                |  # I=0
                     (0 << 24)                |  # A=0
-                    (0 << 23)                |  # reservado
-                    (1 << 21)                |  # S=1
+                    (0 << 21)                |  # reservado
+                    (1 << 20)                |  # S=1
                     (RdHi << 16)             |
                     (RdLo << 12)             |
                     (Rs << 8)                |
