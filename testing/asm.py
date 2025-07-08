@@ -47,8 +47,8 @@ class ARM_Assembler:
             "MOV": 0b1010,   
             "MUL": 0b1001,
             "DIV": 0b1011,
-            "UMULL": 0b1000,
-            "SMULL": 0b1001, # bit 20 cambia
+            "UMULL": 0b1110, # ALWAYS 1110
+            "SMULL": 0b1110, 
             }
 
         self.mem_instr = {
@@ -151,38 +151,41 @@ class ARM_Assembler:
 
             if instr == "UMULL":
                 if len(regs) != 4:
-                    raise RuntimeError("UMULL requiere 4 registros: RdLo, RdHi, Rn, Rm")
-                RdLo, RdHi, Rn, Rm = regs
-                cmd = self.dp_instr["UMULL"]   # 0b0110
+                    raise RuntimeError("UMULL requiere 4 registros: RdLo, RdHi, Rm, Rs")
+                RdHi, Rs,Rm, RdLo = regs
                 return (
-                    (self.conds[cond] << 28)      |  # cond[31:28]
-                    (0b00             << 26)      |  # op=00
-                    (0                << 25)      |  # I=0 (registro)
-                    (0b100              << 21)      |  # cmd[24:21]
-                    (1                << 20)      |  # U/S bit: 0 → unsigned
-                    (RdLo             << 16)      |  # RdLo (rd)
-                    (RdHi             << 12)      |  # RdHi (ra)
-                    (Rm               << 8 )      |  # Rm
-                    (0b1001           << 4 )      |  # “1001” fijo en [7:4]
-                    (Rn)                            # Rn[3:0]
+                    (self.conds[cond] << 28) |
+                    (0b00 << 26)             |
+                    (0 << 25)                |  # I=0
+                    (0 << 24)                |  # A=0
+                    (0 << 23)                |  # reservado
+                    (0 << 21)                |  # S=0
+                    (RdHi << 16)             |
+                    (RdLo << 12)             |
+                    (Rs << 8)                |
+                    (0b1001 << 4)            |
+                    (Rm)
                 )
+
+
             if instr == "SMULL":
                 if len(regs) != 4:
-                    raise RuntimeError("SMULL requiere 4 registros: RdLo, RdHi, Rn, Rm")
-                Rd, Ra, Rn, Rm = regs
-                cmd = self.dp_instr["SMULL"]   # 0b1000
+                    raise RuntimeError("UMULL requiere 4 registros: RdLo, RdHi, Rm, Rs")
+                RdHi, Rs,Rm, RdLo = regs
                 return (
-                    (self.conds[cond] << 28)   |  # cond[31:28]
-                    (0b00             << 26)   |  # op=00
-                    (0                << 25)   |  # I=0 (registro)
-                    (0b100              << 21)   |  # opcode bits [24:21]
-                    (0                << 20)   |  # S=0 → unsigned long
-                    (Rd             << 16)   |  # RdLo
-                    (Ra             << 12)   |  # RdHi
-                    (Rm               << 8 )   |  # Rm [11:8]
-                    (0b1001           << 4 )      |  # “1001” fijo en [7:4]
-                    (Rn)                            # Rn[3:0]
+                    (self.conds[cond] << 28) |
+                    (0b00 << 26)             |
+                    (0 << 25)                |  # I=0
+                    (0 << 24)                |  # A=0
+                    (0 << 23)                |  # reservado
+                    (1 << 21)                |  # S=1
+                    (RdHi << 16)             |
+                    (RdLo << 12)             |
+                    (Rs << 8)                |
+                    (0b1001 << 4)            |
+                    (Rm)
                 )
+
             if instr == "MOV":
                 S = 0
                 Rn = 0
