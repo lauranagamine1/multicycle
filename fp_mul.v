@@ -8,37 +8,39 @@
 // Description: IEEE-754 single-precision adder con round-to-nearest-even (sin NaN/Inf)
 //////////////////////////////////////////////////////////////////////////////////
 
-module fp_mul (flp_a, flp_b,sum);
-	input [31:0] flp_a, flp_b;
-	output [31:0] sum;
+module fp_mul (
 
-    wire sa,sb,sres;
+    input [31:0] flp_a, 
+    input [31:0] flp_b,
+	output [31:0] sum);
+	
+    wire sa, sb, sres;
 
-    wire[7:0] expa,expb,expres;
-    wire[22:0] mantA,mantB,mantRes;
+    wire [7:0] expa, expb,expres;
+    wire [22:0] mantA, mantB, mantRes;
 
-    wire[45:0] mantissa;
-    wire[47:0] bmantissa;
+    wire [45:0] mantissa;
+    wire [47:0] bmantissa;
 
     assign {sa,expa,mantA} = flp_a;
     assign {sb,expb,mantB} = flp_b;
-    wire[23:0] NMantA,NMantB;
+    wire [23:0] NMantA,NMantB;
 
     assign NMantA = {1'b1,mantA};
     assign NMantB = {1'b1,mantB};
 
 
-    assign bmantissa = (NMantA)*(NMantB); 
-    assign mantissa = (NMantA)*(NMantB);
+    assign bmantissa = (NMantA) * (NMantB); 
+    assign mantissa = (NMantA) * (NMantB);
 
 
     assign sres = sa*sb;
-    assign expres = bmantissa[47]?expa+expb-126:expa + expb - 127;
+    assign expres = bmantissa[47] ? expa + expb - 126 : expa + expb - 127;
 
-    //assign expres = expa + expb - 127;
     assign mantRes = mantissa[45:23];
 
-    reg[22:0] mantreto;
+    reg [22:0] mantreto;
+    
     always @(*) begin
         if(bmantissa[47])
         begin
@@ -51,8 +53,6 @@ module fp_mul (flp_a, flp_b,sum);
         end
     end
 
-    
     assign sum = {sres,expres,mantreto};
-
 
 endmodule
