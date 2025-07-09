@@ -14,7 +14,7 @@ TOKEN_SPEC = {
     "L_BRACKET": r"\[",
     "R_BRACKET": r"\]",
     "SPACE":r" ",
-    "UNKOWN": r"."
+    "UNKOWN": r".",
 }
 
 def reg_val(r):
@@ -48,7 +48,9 @@ class ARM_Assembler:
             "MUL": 0b1001,
             "DIV": 0b1011,
             "UMULL": 0b1110, # ALWAYS 1110
-            "SMULL": 0b1110, 
+            "SMULL": 0b1110, #always
+            "FADD": 0b1110, #always
+            "FMULL": 0b1110, #always
             }
 
         self.mem_instr = {
@@ -147,8 +149,76 @@ class ARM_Assembler:
         
 
         if instr in self.dp_instr:
-            # Custom DP exceptions
+            
+            if instr == "FADD":
+                if len(regs) == 3:
+                    Rd, Rn, Rm = regs
+                else:
+                    print("Se necesitaban 3 registros")
+                return (
+                    (self.conds[cond] << 28) |
+                    (0b11 << 26)             | # 11 para floating point
+                    (0 << 23)                |  # I=0
+                    (0b00 << 21)                |  #22:21 = 00 fadd 32
+                    (0 << 20)                |  # S=0
+                    (Rn << 16)             |
+                    (Rd << 12)             |
+                    (0 << 4)                |
+                    (Rm)
+                )
+            if instr == "FADD_16":
+                if len(regs) == 3:
+                    Rd, Rn, Rm = regs
+                else:
+                    print("Se necesitaban 3 registros")
+                return (
+                    (self.conds[cond] << 28) |
+                    (0b11 << 26)             | # 11 para floating point
+                    (0 << 25)                |  # I=0
+                    (0 << 24)                |  # A=0
+                    (0 << 21)                |  # reservado
+                    (0 << 20)                |  # S=0
+                    (RdHi << 16)             |
+                    (RdLo << 12)             |
+                    (Rs << 8)                |
+                    (0b1001 << 4)            |
+                    (Rm)
+                )    
 
+            if instr == "FMUL":
+                if len(regs) != 4:
+                    raise RuntimeError("UMULL requiere 4 registros: RdLo, RdHi, Rm, Rs")
+                RdHi, Rs,Rm, RdLo = regs
+                return (
+                    (self.conds[cond] << 28) |
+                    (0b00 << 26)             |
+                    (0 << 25)                |  # I=0
+                    (0 << 24)                |  # A=0
+                    (0 << 21)                |  # reservado
+                    (0 << 20)                |  # S=0
+                    (RdHi << 16)             |
+                    (RdLo << 12)             |
+                    (Rs << 8)                |
+                    (0b1001 << 4)            |
+                    (Rm)
+                ) 
+            if instr == "FMUL_16":
+                if len(regs) != 4:
+                    raise RuntimeError("UMULL requiere 4 registros: RdLo, RdHi, Rm, Rs")
+                RdHi, Rs,Rm, RdLo = regs
+                return (
+                    (self.conds[cond] << 28) |
+                    (0b00 << 26)             |
+                    (0 << 25)                |  # I=0
+                    (0 << 24)                |  # A=0
+                    (0 << 21)                |  # reservado
+                    (0 << 20)                |  # S=0
+                    (RdHi << 16)             |
+                    (RdLo << 12)             |
+                    (Rs << 8)                |
+                    (0b1001 << 4)            |
+                    (Rm)
+                )           
             if instr == "UMULL":
                 if len(regs) != 4:
                     raise RuntimeError("UMULL requiere 4 registros: RdLo, RdHi, Rm, Rs")

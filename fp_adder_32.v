@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module fp_adder (
+module fp_adder_32 (
     input  wire [31:0] a,
     input  wire [31:0] b,
     output reg  [31:0] sum
@@ -41,6 +41,7 @@ module fp_adder (
 
     // calcular diferencia de exponentes y seleccionar mayor/menor
     wire [7:0] exp_diff = (exponent_a > exponent_b) ? (exponent_a - exponent_b) : (exponent_b - exponent_a);
+    
     wire [23:0] mantissa_larger  = (exponent_a > exponent_b) ? mantissa_a_norm : mantissa_b_norm;
     wire [23:0] mantissa_smaller = (exponent_a > exponent_b) ? mantissa_b_norm : mantissa_a_norm;
     wire [7:0]  exponent_larger  = (exponent_a > exponent_b) ? exponent_a : exponent_b;
@@ -54,7 +55,7 @@ module fp_adder (
     wire [24:0] mantissa_sum = (sign_large == sign_small)
         ? (mantissa_larger + mantissa_smaller_aligned)
         : (mantissa_larger - mantissa_smaller_aligned);
-
+    
     // variables para normalización
     reg [24:0] mantissa_temp;
     reg [23:0] mantissa_normalized;
@@ -64,27 +65,34 @@ module fp_adder (
 
     // normalizacion
     always @(*) begin
-        mantissa_temp = mantissa_sum;
-        exponent_normalized = exponent_larger;
-        exit = 1'b0;
-
-        // caso de overflow en la suma de mantisas
-        if (mantissa_temp[24]) begin
-            mantissa_normalized = mantissa_temp[24:1];
-            exponent_normalized = exponent_normalized + 1;
-        end else begin
-            // shifting hasta que aparezca un 1 en el bit 23
-            for (i = 0; i < 23; i=i+1) begin
-                if (mantissa_temp[23] || exit) begin
-                    mantissa_normalized = mantissa_temp[23:0];
-                    exit = 1'b1;
-                end else begin
-                    mantissa_temp = mantissa_temp << 1;
-                    exponent_normalized = exponent_normalized - 1;
+    // si la suma de mantisas es 0, suma es 0
+        if (mantissa_sum == 25'd0) begin
+            sum = 32'b00000000;
+        end 
+        else begin
+            
+            mantissa_temp = mantissa_sum;
+            exponent_normalized = exponent_larger;
+            exit = 1'b0;
+    
+            // caso de overflow en la suma de mantisas
+            if (mantissa_temp[24]) begin
+                mantissa_normalized = mantissa_temp[24:1];
+                exponent_normalized = exponent_normalized + 1;
+            end else begin
+                // shifting hasta que aparezca un 1 en el bit 23
+                for (i = 0; i < 23; i=i+1) begin
+                    if (mantissa_temp[23] || exit) begin
+                        mantissa_normalized = mantissa_temp[23:0];
+                        exit = 1'b1;
+                    end else begin
+                        mantissa_temp = mantissa_temp << 1;
+                        exponent_normalized = exponent_normalized - 1;
+                    end
                 end
+                if (!exit)
+                    mantissa_normalized = mantissa_temp[23:0];
             end
-            if (!exit)
-                mantissa_normalized = mantissa_temp[23:0];
         end
     end
 

@@ -80,16 +80,16 @@ module datapath (
 	wire [31:0] ALUOut;
 	wire [3:0] RA1;
 	wire [3:0] RA1_prev;
-	
-	
 	wire [3:0] RA2;
 	wire [3:0] RA2_prev;
 	// new
 	wire[3:0] RA3;
 	
     wire [31:0] ALUResult2;
+    wire [31:0] FPUResult, FPUOut; // fpu new
+    
     input wire is_mul = (Instr[7:4]  == 4'b1001); // new
-    // input wire is_mul = (Instr[7:4] == 4'b1001);
+
 	assign PCNext = Result;
 
 	// Your datapath hardware goes below. Instantiate each of the 
@@ -147,7 +147,6 @@ module datapath (
 	   .s(is_mul),
 	   .y(RA1)
 	);
-	
 	
 	//Rn
 	mux2 #(4) ra2mux_new(
@@ -225,11 +224,31 @@ module datapath (
 		.d(ALUResult),
 		.q(ALUOut)
 	);
-	mux3 #(32) resultmux(
-	   .d0(ALUOut),
-	   .d1(Data),
-	   .d2(ALUResult),
-	   .s(ResultSrc),
-	   .y(Result)
+	
+	// new fpu unit
+	fpu fpu(
+	   .a(SrcA),
+	   .b(SrcB),
+	   .sel(Instr[22:21]),
+	   .result(FPUResult)
 	);
+	
+	
+	// flopr fpu
+	flopr #(32) fpuout(
+	   .clk(clk),
+	   .reset(reset),
+	   .d(FPUResult),
+	   .q(FPUOut) 
+	);
+	
+	mux4 #(32) resultmux(
+       .d0(ALUOut),     // 00
+       .d1(Data),       // 01
+       .d2(ALUResult),  // 10
+       .d3(FPUOut),     // 11
+       .s(ResultSrc),   
+       .y(Result)
+    );
+	
 endmodule
