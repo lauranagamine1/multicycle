@@ -116,6 +116,8 @@ module decode (
 				else
 					controls = 10'b1001110100;
 			2'b10: controls = 10'b0110100010;
+			2'b11: controls = 10'b0000001000; // regw
+			
 			default: controls = 10'bxxxxxxxxxx;
 		endcase
 	assign {RegSrc, ImmSrc, ALUSrc, MemtoReg, RegW, MemW, Branch, ALUOp} = controls;
@@ -133,13 +135,13 @@ module decode (
                  ALUControl = 4'b1000;  // SMULL
           end
                 
-            else begin
+        else begin
             
 			casex (Funct[4:1])
 				4'b0100: ALUControl = 4'b0000; // add
 				4'b0010: ALUControl = 4'b0001; // SUB
 				4'b0000: ALUControl = 4'b0010; // and
-				4'b1100: ALUControl = 4'b0011;
+				4'b1100: ALUControl = 4'b0011; // orr
 				4'b1001: ALUControl = 4'b0100; // mul
 				4'b1010: ALUControl = 4'b0101; // mov
 				4'b1011: ALUControl = 4'b0111; // div
@@ -159,8 +161,9 @@ module decode (
 			ALUControl = 4'b0000;
 			FlagW = 2'b00;
 		end
-		
-		
-	// CONDICIONES PC
+	
+	
+	
+	// CONDICIONES PC   
 	assign PCS = ((Rd == 4'b1111) & RegW) | Branch;
 endmodule

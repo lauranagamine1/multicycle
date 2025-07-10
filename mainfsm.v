@@ -87,7 +87,6 @@ module mainfsm (
 		casex (state)
 			FETCH: nextstate = DECODE;
 			DECODE:
-
                  case (Op)
                     2'b00:
                         if (Funct[5])
@@ -96,6 +95,8 @@ module mainfsm (
                             nextstate = EXECUTER;
                     2'b01: nextstate = MEMADR;
                     2'b10: nextstate = BRANCH;
+                    2'b11:  
+                    nextstate = EXECUTER;
                     default: nextstate = UNKNOWN;
                 endcase
             //MULL: nextstate = ALUWB; // new, or fetch?
@@ -131,11 +132,21 @@ module mainfsm (
 			MEMWRITE: controls = 13'b0010010000000;
 			EXECUTER: controls = 13'b0000000000001;
             EXECUTEI: controls = 13'b0000000000011;
-            ALUWB: controls = 13'b0001000000000;
+            ALUWB: 
+                if (Op == 2'b11) begin
+                    controls = 14'b0_0_0_1_0_0_11_00_00_0; // regw y resultsrc
+                end else begin
+                controls = 13'b0001000000000;
+                end
             BRANCH: controls = 13'b0100001000010;
             
             //MULL: controls = 13'b000100000001; //  escribe en registro, ALUOp=0
 			default: controls = 13'bxxxxxxxxxxxxx;
 		endcase
-	assign {NextPC, Branch, MemW, RegW, IRWrite, AdrSrc, ResultSrc, ALUSrcA, ALUSrcB, ALUOp} = controls;
+    assign {NextPC, Branch, MemW, RegW, IRWrite, AdrSrc, ResultSrc, ALUSrcA, ALUSrcB, ALUOp} = controls;
+    
+    
+	
+	
+	
 endmodule
