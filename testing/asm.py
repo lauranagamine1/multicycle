@@ -51,6 +51,7 @@ class ARM_Assembler:
             "SMULL": 0b1110, #always
             "FADD": 0b1110, #always
             "FMULL": 0b1110, #always
+            "MOVF": 0b1110,
             }
 
         self.mem_instr = {
@@ -149,7 +150,22 @@ class ARM_Assembler:
         
 
         if instr in self.dp_instr:
-            
+            if instr == "MOVF":
+                if len(regs) == 3:
+                    Rd, Rn, Rot = regs
+                else:
+                    print("Se necesitaban 3 registros")
+                return (
+                    (self.conds[cond] << 28) |
+                    (0b00 << 26)             | # 11 para floating point
+                    (1 << 23)                |  # I=0
+                    (0b00 << 21)                |  #22:21 = 00 fadd 32
+                    (0 << 20)                |  # S=0
+                    (Rn << 16)             |
+                    (Rd << 12)             |
+                    (0 << 4)                |
+                    (Rm)
+                )
             if instr == "FADD":
                 if len(regs) == 3:
                     Rd, Rn, Rm = regs
