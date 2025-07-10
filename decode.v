@@ -69,6 +69,8 @@ module decode (
 	
     wire is_umull = is_mul && (Instr[20] == 1'b0);
     wire is_smull = is_mul && (Instr[20] == 1'b1);
+    
+    wire S_mul = Instr[21]; //bit que detecta para el seteo de flags
 
 	// Main FSM
 	mainfsm fsm(
@@ -144,9 +146,14 @@ module decode (
 				default: ALUControl = 4'bxxxx;
 			endcase
 			end
-			
-			FlagW[1] = Funct[0];
-			FlagW[0] = Funct[0] & ((ALUControl == 4'b0000) | (ALUControl == 4'b0001));
+	
+	        if (is_mul) begin
+	           FlagW = { S_mul, S_mul };
+	        end
+		    else begin
+			 FlagW[1] = Funct[0];
+			 FlagW[0] = Funct[0] & ((ALUControl == 4'b0000) | (ALUControl == 4'b0001));
+			end 
 		end
 		else begin
 			ALUControl = 4'b0000;

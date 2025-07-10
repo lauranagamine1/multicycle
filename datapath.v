@@ -80,6 +80,7 @@ module datapath (
 	wire [31:0] ALUOut;
 	wire [3:0] RA1;
 	wire [3:0] RA1_prev;
+
 	wire [3:0] RA2;
 	wire [3:0] RA2_prev;
 	// new
@@ -217,6 +218,8 @@ module datapath (
 		.ALUFlags(ALUFlags),
 		.Result2(ALUResult2)
 	);
+	//aquí eestaría el FPU en el cuál entra SrcA, 
+	//SrcB y saldría FPUResult
 	
 	flopr #(32) aluout(
 		.clk(clk),
@@ -224,7 +227,6 @@ module datapath (
 		.d(ALUResult),
 		.q(ALUOut)
 	);
-	
 	// new fpu unit
 	fpu fpu(
 	   .a(SrcA),
