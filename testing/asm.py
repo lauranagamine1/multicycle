@@ -30,6 +30,9 @@ def imm_val(s,m = 255):
 
 class ARM_Assembler:
     def __init__(self):
+    
+        
+        
         pattern = "|".join(f"(?P<{name}>{regex})" for name, regex in TOKEN_SPEC.items())
         self.regex = re.compile(pattern, re.IGNORECASE)
 
@@ -51,7 +54,7 @@ class ARM_Assembler:
             "SMULL": 0b1110, #always
             "FADD": 0b1110, #always
             "FMULL": 0b1110, #always
-            "MOVF": 0b1110,
+            "MOVF": 0b1010,
             }
 
         self.mem_instr = {
@@ -95,6 +98,16 @@ class ARM_Assembler:
             + list(self.b_instr.keys())
             + list(self.spc_instr.keys())
         )
+    def encode_dp_imm(self, val: int) -> tuple[int,int]:
+        """
+        Busca rot (0–15) e imm8 (0–255) tales que:
+            ROR(imm8, rot*2) == val  (módulo 32 bits)
+        """
+        for rot in range(16):
+            imm8 = (val >> (rot*2)) & 0xFF
+            if ((imm8 << (rot*2)) & 0xFFFFFFFF) == (val & 0xFFFFFFFF):
+                return rot, imm8
+        raise ValueError(f"0x{val:08X} no encodable como imm8+rotate")
 
     # Only for tokenization purposes
     def tokenize_instruction(self, instr: str):
@@ -141,31 +154,51 @@ class ARM_Assembler:
             raise RuntimeError(f"Function not implemented: {instr}")
 
 
-        instr, cond, S = self.decode_mnemonic(w[1])
-        
+        instr, cond, S = self.decode_mnemonic(tokens[0][1])
         regs = [reg_val(v) for (k, v) in tokens if k == "REG"]
         imms = [imm_val(v) for (k, v) in tokens if k == "IMM"]
-        # OP == DP
-
-        
 
         if instr in self.dp_instr:
+
+            # ── PSEUDO-MOVF con inmediato y rotación ──
             if instr == "MOVF":
-                if len(regs) == 3:
-                    Rd, Rn, Rot = regs
+                cmd = self.dp_instr["MOV"]  # 0b1010
+                S   = 0
+                Rn  = 0
+
+                # MOVF Rd, #imm8, rot
+                if len(regs) == 1 and len(imms) == 2:
+                    Rd   = regs[0]
+                    I    = 1
+                    imm8 = imms[0] & 0xFF
+                    rot  = imms[1]
+                    if not (0 <= rot < 16):
+                        raise ValueError(f"Rot fuera de rango 0–15: {rot}")
+                    operand2 = (rot << 8) | imm8
+
+                # MOVF Rd, Rm
+                elif len(regs) == 2 and not imms:
+                    Rd       = regs[0]
+                    Rm       = regs[1]
+                    I        = 0
+                    operand2 = Rm
+
                 else:
-                    print("Se necesitaban 3 registros")
+                    raise RuntimeError(
+                        "MOVF formato inválido: MOVF Rd, #imm8, rot  o  MOVF Rd, Rm"
+                    )
+
                 return (
                     (self.conds[cond] << 28) |
-                    (0b00 << 26)             | # 11 para floating point
-                    (1 << 23)                |  # I=0
-                    (0b00 << 21)                |  #22:21 = 00 fadd 32
-                    (0 << 20)                |  # S=0
-                    (Rn << 16)             |
-                    (Rd << 12)             |
-                    (0 << 4)                |
-                    (Rm)
+                    (0b00         << 26)    |  # Data-Processing
+                    (I            << 25)    |  # I=1 para inmediato
+                    (cmd          << 21)    |  # opcode MOV
+                    (S            << 20)    |  # S=0
+                    (Rn           << 16)    |
+                    (Rd           << 12)    |
+                    operand2
                 )
+
             if instr == "FADD":
                 if len(regs) == 3:
                     Rd, Rn, Rm = regs
