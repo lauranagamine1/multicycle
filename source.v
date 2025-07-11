@@ -50,6 +50,40 @@ endmodule
 module hFSM(input clk,input reset,input[15:0] data,output reg[3:0]
     digit,output reg[3:0] anode);
     
+    reg [1:0] state;
+
+    always @(posedge clk or posedge reset) begin
+        if (reset)
+            state <= 2'd0;
+        else
+            state <= state + 1'b1;
+    end
+
+    always @(*) begin
+        case (state)
+            2'd0: begin
+                digit <= data[15:12];  // nibble más significativo
+                anode <= 4'b0111;      // activa físicamente el dígito 3
+            end
+            2'd1: begin
+                digit <= data[11: 8];
+                anode <= 4'b1011;      // activa el dígito 2
+            end
+            2'd2: begin
+                digit <= data[ 7: 4];
+                anode <= 4'b1101;      // dígito 1
+            end
+            2'd3: begin
+                digit <= data[ 3: 0];  // nibble menos significativo
+                anode <= 4'b1110;      // dígito 0
+            end
+            default: begin
+                digit <= 4'd0;
+                anode <= 4'b1111;      // todos apagados
+            end
+        endcase
+    end
+
 endmodule
 
 // Main module
