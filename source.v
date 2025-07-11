@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module HexTo7Segment (
     input wire [3:0] digit, 
     output reg [6:0] catode);
@@ -46,13 +48,13 @@ module CLKdivider(input in_clk, input reset, output reg out_clk);
 endmodule
 
 module hFSM(input clk,input reset,input[15:0] data,output reg[3:0]
-    digit,output reg[3:0] anode);↩→
+    digit,output reg[3:0] anode);
     
 endmodule
 
 // Main module
 module hex_display(input clk, input reset, input[15:0] data, output
-    wire[3:0]anode, output wire[7:0]catode);↩→
+    wire[3:0]anode, output wire[6:0]catode);
     wire scl_clk;
     wire[3:0] digit;
     CLKdivider sc(
