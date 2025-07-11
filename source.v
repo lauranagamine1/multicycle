@@ -1,5 +1,5 @@
 module HexTo7Segment (input[3:0] digit, output reg[7:0] catode);
-    casex(input[3:0])
+    casex(digit[3:0])
         4'b0000: catode = 7'b0111111; //0
         4'b0001: catode = 7'b0000110; //1
         4'b0010: catode = 7'b1011011; //2
