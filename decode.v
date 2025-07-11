@@ -119,7 +119,7 @@ module decode (
 				else
 					controls = 10'b1001110100;
 			2'b10: controls = 10'b0110100010;
-			2'b11: controls = 10'b0000001001; // regw
+			2'b11: controls = 10'b0000001001; // regw, aluop
 			
 			default: controls = 10'bxxxxxxxxxx;
 		endcase

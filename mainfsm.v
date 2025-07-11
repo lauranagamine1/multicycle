@@ -134,7 +134,7 @@ module mainfsm (
             EXECUTEI: controls = 13'b0000000000011;
             ALUWB: 
                 if (Op == 2'b11) begin
-                    controls = 13'b0001001100000; // regw y resultsrc
+                    controls = 13'b0001001100001; // regw y resultsrc
                 end else begin
                 controls = 13'b0001000000000;
                 end

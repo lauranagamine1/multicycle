@@ -36,6 +36,7 @@ module datapath (
 	ReadData,
 	Instr,
 	ALUFlags,
+	FPUFlags,
 	PCWrite,
 	RegWrite,
 	IRWrite,
@@ -56,6 +57,7 @@ module datapath (
 	input wire [31:0] ReadData;
 	output wire [31:0] Instr;
 	output wire [3:0] ALUFlags;
+	output wire [3:0] FPUFlags; // new
 	input wire PCWrite;
 	input wire RegWrite;
 	input wire IRWrite;
@@ -163,6 +165,7 @@ module datapath (
 	   .s(is_mul),
 	   .y(RA3)
 	);
+	
     //ra = instr
 	regfile rf(
 		.clk(clk),
@@ -195,8 +198,8 @@ module datapath (
 	extend ext(
 		.Instr(Instr[23:0]),
 		.ImmSrc(ImmSrc),
-		.ExtImm_rot(ExtImm),
-		.Instr_rot(Instr[11:8])
+		.Instr_rot(Instr[11:8]),
+		.ExtImm_rot(ExtImm)
 	);
 	
 	mux2 #(32) srcamux(
@@ -205,6 +208,7 @@ module datapath (
 		.s(ALUSrcA[0]),
 		.y(SrcA)
 	);
+	
 	mux3 #(32) srcbmux(
 	   .d0(WriteData),
 	   .d1(ExtImm),
@@ -212,6 +216,7 @@ module datapath (
 	   .s(ALUSrcB),
 	   .y(SrcB)
 	);
+	
 	alu alu(
 		.SrcA(SrcA),
 		.SrcB(SrcB),
@@ -233,16 +238,16 @@ module datapath (
 	   .a(SrcA),
 	   .b(SrcB),
 	   .sel(Instr[22:21]),
-	   .result(FPUResult)
+	   .result(FPUResult),
+	   .FPUFlags(FPUFlags)
 	);
-	
 	
 	// flopr fpu
 	flopr #(32) fpuout(
 	   .clk(clk),
 	   .reset(reset),
 	   .d(FPUResult),
-	   .q(FPUOut) 
+	   .q(FPUOut)
 	);
 	
 	mux4 #(32) resultmux(
