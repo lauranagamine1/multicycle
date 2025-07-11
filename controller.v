@@ -25,6 +25,7 @@ module controller (
 	reset,
 	Instr,
 	ALUFlags,
+	FPUFlags,
 	PCWrite,
 	MemWrite,
 	RegWrite,
@@ -42,6 +43,7 @@ module controller (
 	input wire reset;
 	input wire [31:0] Instr;
 	input wire [3:0] ALUFlags;
+	input wire [3:0] FPUFlags;
 	output wire PCWrite;
 	output wire MemWrite;
 	output wire RegWrite;
@@ -55,10 +57,15 @@ module controller (
 	output wire [3:0] ALUControl; //modificación a 3 bits el ALUControl
 	output wire is_mul; // new
 	wire [1:0] FlagW;
+	wire [3:0] FlagResult;
 	wire PCS;
 	wire NextPC;
 	wire RegW;
 	wire MemW;
+	wire isfp_flag; 
+	
+	
+	assign isfp_flag = (Instr[27:26] == 2'b11) ? 1 : 0;
 	
 	decode dec(
 		.clk(clk),
@@ -82,11 +89,19 @@ module controller (
 		.ALUControl(ALUControl),
 		.is_mul(is_mul)
 	);
+	
+	mux2 #(4) flags(
+	   .d0(ALUFlags), 
+	   .d1(FPUFlags),
+	   .s(isfp_flag),
+	   .y(FlagResult)
+	);
+	
 	condlogic cl(
 		.clk(clk),
 		.reset(reset),
 		.Cond(Instr[31:28]),
-		.ALUFlags(ALUFlags),
+		.ALUFlags(FlagResult),
 		.FlagW(FlagW),
 		.PCS(PCS),
 		.NextPC(NextPC),
@@ -96,4 +111,5 @@ module controller (
 		.RegWrite(RegWrite),
 		.MemWrite(MemWrite)
 	);
+	
 endmodule

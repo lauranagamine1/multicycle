@@ -36,6 +36,7 @@ module datapath (
 	ReadData,
 	Instr,
 	ALUFlags,
+	FPUFlags,
 	PCWrite,
 	RegWrite,
 	IRWrite,
@@ -56,6 +57,7 @@ module datapath (
 	input wire [31:0] ReadData;
 	output wire [31:0] Instr;
 	output wire [3:0] ALUFlags;
+	output wire [3:0] FPUFlags; // new
 	input wire PCWrite;
 	input wire RegWrite;
 	input wire IRWrite;
@@ -80,18 +82,16 @@ module datapath (
 	wire [31:0] ALUOut;
 	wire [3:0] RA1;
 	wire [3:0] RA1_prev;
-	//wire [31:0] FPUResult; salida del FPU
-	//wire [31:0] FPUOut; salida del flop donde entra FPUResult
-	
-	
 	wire [3:0] RA2;
 	wire [3:0] RA2_prev;
 	// new
 	wire[3:0] RA3;
 	
     wire [31:0] ALUResult2;
+    wire [31:0] FPUResult, FPUOut; // fpu new
+    
     input wire is_mul = (Instr[7:4]  == 4'b1001); // new
-    // input wire is_mul = (Instr[7:4] == 4'b1001);
+
 	assign PCNext = Result;
 
 	// Your datapath hardware goes below. Instantiate each of the 
@@ -150,7 +150,6 @@ module datapath (
 	   .y(RA1)
 	);
 	
-	
 	//Rn
 	mux2 #(4) ra2mux_new(
 	   .d1(Instr[3:0]),
@@ -166,6 +165,7 @@ module datapath (
 	   .s(is_mul),
 	   .y(RA3)
 	);
+	
     //ra = instr
 	regfile rf(
 		.clk(clk),
@@ -194,17 +194,21 @@ module datapath (
 		.d(RD2),
 		.q(WriteData)
 	);
+	
 	extend ext(
 		.Instr(Instr[23:0]),
 		.ImmSrc(ImmSrc),
-		.ExtImm(ExtImm)
+		.Instr_rot(Instr[11:8]),
+		.ExtImm_rot(ExtImm)
 	);
+	
 	mux2 #(32) srcamux(
 		.d0(A),
 		.d1(PC),
 		.s(ALUSrcA[0]),
 		.y(SrcA)
 	);
+	
 	mux3 #(32) srcbmux(
 	   .d0(WriteData),
 	   .d1(ExtImm),
@@ -212,6 +216,7 @@ module datapath (
 	   .s(ALUSrcB),
 	   .y(SrcB)
 	);
+	
 	alu alu(
 		.SrcA(SrcA),
 		.SrcB(SrcB),
@@ -220,8 +225,6 @@ module datapath (
 		.ALUFlags(ALUFlags),
 		.Result2(ALUResult2)
 	);
-	//aquí eestaría el FPU en el cuál entra SrcA, 
-	//SrcB y saldría FPUResult
 	
 	flopr #(32) aluout(
 		.clk(clk),
@@ -230,28 +233,30 @@ module datapath (
 		.q(ALUOut)
 	);
 	
-	//	flopr #(32) fpuout(
-//		.clk(clk),
-//  		.reset(reset),
-//		.d(FPUResult),    Aquí está el flipflop donde entra el FPUResult y sale FPUOut
-//		.q(FPUOut)
-//	);
-
-	
-	mux3 #(32) resultmux(
-	   .d0(ALUOut),
-	   .d1(Data),
-	   .d2(ALUResult),
-	   .s(ResultSrc),
-	   .y(Result)
+	// new fpu unit
+	fpu fpu(
+	   .a(SrcA),
+	   .b(SrcB),
+	   .sel(Instr[22:21]),
+	   .result(FPUResult),
+	   .FPUFlags(FPUFlags)
 	);
 	
-//	mux4 #(32) resultmux(
-//	   .d0(ALUOut),
-//	   .d1(Data),
-//	   .d2(ALUResult),   Aquí está el último mux que reemplazaría al resultmux 3:1
-//     	   .d3(FPUOut),
-//	   .s(ResultSrc),
-//	   .y(Result)
-//	);
+	// flopr fpu
+	flopr #(32) fpuout(
+	   .clk(clk),
+	   .reset(reset),
+	   .d(FPUResult),
+	   .q(FPUOut)
+	);
+	
+	mux4 #(32) resultmux(
+       .d0(ALUOut),     // 00
+       .d1(Data),       // 01
+       .d2(ALUResult),  // 10
+       .d3(FPUOut),     // 11
+       .s(ResultSrc),   
+       .y(Result)
+    );
+	
 endmodule

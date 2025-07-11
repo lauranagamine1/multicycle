@@ -36,6 +36,7 @@ module arm (
 	input wire [31:0] ReadData;
 	wire [31:0] Instr;
 	wire [3:0] ALUFlags;
+	wire [3:0] FPUFlags;
 	wire PCWrite;
 	wire RegWrite;
 	wire IRWrite;
@@ -48,11 +49,13 @@ module arm (
 	wire [1:0] ResultSrc;
 	
 	wire is_mul;
+	
 	controller c(
 		.clk(clk),
 		.reset(reset),
 		.Instr(Instr),
 		.ALUFlags(ALUFlags),
+		.FPUFlags(FPUFlags),
 		.PCWrite(PCWrite),
 		.MemWrite(MemWrite),
 		.RegWrite(RegWrite),
@@ -74,6 +77,7 @@ module arm (
 		.ReadData(ReadData),
 		.Instr(Instr),
 		.ALUFlags(ALUFlags),
+		.FPUFlags(FPUFlags),
 		.PCWrite(PCWrite),
 		.RegWrite(RegWrite),
 		.IRWrite(IRWrite),

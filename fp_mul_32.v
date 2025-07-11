@@ -8,8 +8,7 @@
 // Description: IEEE-754 single-precision adder con round-to-nearest-even (sin NaN/Inf)
 //////////////////////////////////////////////////////////////////////////////////
 
-module fp_mul (
-
+module fp_mul_32 (
     input [31:0] a, 
     input [31:0] b,
 	output [31:0] sum);
