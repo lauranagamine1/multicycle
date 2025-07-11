@@ -11,11 +11,11 @@ module HexTo7Segment (input[3:0] digit, output reg[7:0] catode);
         4'b1000: catode = 7'b1111111; //8
         4'b1001: catode = 7'b1100111; //9
         4'b1010: catode = 7'b1110111; //A 
-        4'b1011: catode = 7'b; //B 
-        4'b1100: catode = 7'b; //C 
-        4'b1101: catode = 7'b; //D 
-        4'b1110: catode = 7'b; //E 
-        4'b1111: catode = 7'b; //F
+        4'b1011: catode = 7'b1111100; //B 
+        4'b1100: catode = 7'b0111001; //C 
+        4'b1101: catode = 7'b1011110; //D 
+        4'b1110: catode = 7'b1111001; //E 
+        4'b1111: catode = 7'b1110001; //F
 endmodule
 
 module CLKdivider(input clk, input reset, output reg t);
