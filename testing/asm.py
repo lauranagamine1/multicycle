@@ -53,8 +53,11 @@ class ARM_Assembler:
             "UMULL": 0b1110, # ALWAYS 1110
             "SMULL": 0b1110, #always
             "FADD": 0b1110, #always
-            "FMULL": 0b1110, #always
+            "FADD_16": 0b1110,
+            "FMUL": 0b1110, 
+            "FMUL_16": 0b1110,
             "MOVF": 0b1010,
+            
             }
 
         self.mem_instr = {
@@ -223,51 +226,47 @@ class ARM_Assembler:
                 return (
                     (self.conds[cond] << 28) |
                     (0b11 << 26)             | # 11 para floating point
-                    (0 << 25)                |  # I=0
-                    (0 << 24)                |  # A=0
-                    (0 << 21)                |  # reservado
+                    (0 << 23)                |  # I=0
+                    (0b10 << 21)                |  #22:21 = 10 fadd 16
                     (0 << 20)                |  # S=0
-                    (RdHi << 16)             |
-                    (RdLo << 12)             |
-                    (Rs << 8)                |
-                    (0b1001 << 4)            |
+                    (Rn << 16)             |
+                    (Rd << 12)             |
+                    (0 << 4)                |
                     (Rm)
                 )    
 
             if instr == "FMUL":
-                if len(regs) != 4:
-                    raise RuntimeError("UMULL requiere 4 registros: RdLo, RdHi, Rm, Rs")
-                RdHi, Rs,Rm, RdLo = regs
+                if len(regs) == 3:
+                    Rd, Rn, Rm = regs
+                else:
+                    print("Se necesitaban 3 registros")
                 return (
                     (self.conds[cond] << 28) |
-                    (0b00 << 26)             |
-                    (0 << 25)                |  # I=0
-                    (0 << 24)                |  # A=0
-                    (0 << 21)                |  # reservado
+                    (0b11 << 26)             | # 11 para floating point
+                    (0 << 23)                |  # I=0
+                    (0b01 << 21)                |  #22:21 = 00 fmul 01
                     (0 << 20)                |  # S=0
-                    (RdHi << 16)             |
-                    (RdLo << 12)             |
-                    (Rs << 8)                |
-                    (0b1001 << 4)            |
+                    (Rn << 16)             |
+                    (Rd << 12)             |
+                    (0 << 4)                |
                     (Rm)
                 ) 
             if instr == "FMUL_16":
-                if len(regs) != 4:
-                    raise RuntimeError("UMULL requiere 4 registros: RdLo, RdHi, Rm, Rs")
-                RdHi, Rs,Rm, RdLo = regs
+                if len(regs) == 3:
+                    Rd, Rn, Rm = regs
+                else:
+                    print("Se necesitaban 3 registros")
                 return (
                     (self.conds[cond] << 28) |
-                    (0b00 << 26)             |
-                    (0 << 25)                |  # I=0
-                    (0 << 24)                |  # A=0
-                    (0 << 21)                |  # reservado
-                    (0 << 20)                |  # S=0
-                    (RdHi << 16)             |
-                    (RdLo << 12)             |
-                    (Rs << 8)                |
-                    (0b1001 << 4)            |
+                    (0b11 << 26)             | # 11 para floating point
+                    (0 << 23)                |  # I=0
+                    (0b11 << 21)                |  #22:21 = 00 
+                    (0 << 20)                |  # S=1 !!!
+                    (Rn << 16)             |
+                    (Rd << 12)             |
+                    (0 << 4)                |
                     (Rm)
-                )           
+                )            
             if instr == "UMULL":
                 if len(regs) != 4:
                     raise RuntimeError("UMULL requiere 4 registros: RdLo, RdHi, Rm, Rs")
