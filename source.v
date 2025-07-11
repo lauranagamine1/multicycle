@@ -18,13 +18,29 @@ module HexTo7Segment (input[3:0] digit, output reg[7:0] catode);
         4'b1111: catode = 7'b1110001; //F
 endmodule
 
-module CLKdivider(input clk, input reset, output reg t);
-    ...
+module CLKdivider(input in_clk, input reset, output reg out_clk);
+    parameter DIV_COUNT = 3;  
+    reg [3:0] counter;
+     
+     // reinicio ascinrono
+    always @(posedge in_clk or posedge reset) begin
+        if (reset) begin
+            counter <= 0;
+            out_clk <= 0;
+        end
+        else if (counter == DIV_COUNT-1) begin
+            counter <= 0;
+            out_clk <= ~out_clk;
+        end
+        else begin
+            counter <= counter + 1;
+        end
+    end
 endmodule
 
 module hFSM(input clk,input reset,input[15:0] data,output reg[3:0]
     digit,output reg[3:0] anode);↩→
-    ...
+    
 endmodule
 
 // Main module
