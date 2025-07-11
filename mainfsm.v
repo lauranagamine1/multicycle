@@ -134,7 +134,7 @@ module mainfsm (
             EXECUTEI: controls = 13'b0000000000011;
             ALUWB: 
                 if (Op == 2'b11) begin
-                    controls = 14'b0_0_0_1_0_0_11_00_00_0; // regw y resultsrc
+                    controls = 13'b0001001100000; // regw y resultsrc
                 end else begin
                 controls = 13'b0001000000000;
                 end
@@ -145,8 +145,5 @@ module mainfsm (
 		endcase
     assign {NextPC, Branch, MemW, RegW, IRWrite, AdrSrc, ResultSrc, ALUSrcA, ALUSrcB, ALUOp} = controls;
     
-    
-	
-	
-	
+    	
 endmodule

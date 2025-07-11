@@ -71,7 +71,10 @@ module decode (
     wire is_smull = is_mul && (Instr[20] == 1'b1);
     
     wire S_mul = Instr[21]; //bit que detecta para el seteo de flags
-
+    
+    wire is_fpu = (Op==2'b11) ? 1 : 0;
+    wire S_fpu = Instr[20];
+    
 	// Main FSM
 	mainfsm fsm(
 		.clk(clk),
@@ -116,7 +119,7 @@ module decode (
 				else
 					controls = 10'b1001110100;
 			2'b10: controls = 10'b0110100010;
-			2'b11: controls = 10'b0000001000; // regw
+			2'b11: controls = 10'b0000001001; // regw
 			
 			default: controls = 10'bxxxxxxxxxx;
 		endcase
@@ -148,10 +151,15 @@ module decode (
 				default: ALUControl = 4'bxxxx;
 			endcase
 			end
-	
-	        if (is_mul) begin
+			
+	        if (is_fpu) begin
+	           FlagW = {S_fpu, S_fpu};
+	        end
+	        
+	        else if (is_mul) begin
 	           FlagW = { S_mul, S_mul };
 	        end
+	        
 		    else begin
 			 FlagW[1] = Funct[0];
 			 FlagW[0] = Funct[0] & ((ALUControl == 4'b0000) | (ALUControl == 4'b0001));
@@ -161,8 +169,6 @@ module decode (
 			ALUControl = 4'b0000;
 			FlagW = 2'b00;
 		end
-	
-	
 	
 	// CONDICIONES PC   
 	assign PCS = ((Rd == 4'b1111) & RegW) | Branch;
