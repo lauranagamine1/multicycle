@@ -276,8 +276,9 @@ class ARM_Assembler:
                     (0b00 << 26)             |
                     (0 << 25)                |  # I=0
                     (0 << 24)                |  # A=0
-                    (0 << 21)                |  # reservado
-                    (0 << 20)                |  # S=0
+                    (0<< 22)    |
+                    (0 << 21)                |  # flags
+                    (0 << 20)                |  # es smull o umull
                     (RdHi << 16)             |
                     (RdLo << 12)             |
                     (Rs << 8)                |
@@ -295,7 +296,8 @@ class ARM_Assembler:
                     (0b00 << 26)             |
                     (0 << 25)                |  # I=0
                     (0 << 24)                |  # A=0
-                    (0 << 21)                |  # reservado
+                    (0 << 22)                |  # reservado
+                    (0 << 21) | # flags
                     (1 << 20)                |  # S=1
                     (RdHi << 16)             |
                     (RdLo << 12)             |
