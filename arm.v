@@ -26,7 +26,8 @@ module arm (
 	MemWrite,
 	Adr,
 	WriteData,
-	ReadData
+	ReadData,
+	Result
 );
 	input wire clk;
 	input wire reset;
@@ -34,6 +35,7 @@ module arm (
 	output wire [31:0] Adr;
 	output wire [31:0] WriteData;
 	input wire [31:0] ReadData;
+	output wire [31:0] Result;
 	wire [31:0] Instr;
 	wire [3:0] ALUFlags;
 	wire [3:0] FPUFlags;
@@ -88,6 +90,7 @@ module arm (
 		.ResultSrc(ResultSrc),
 		.ImmSrc(ImmSrc),
 		.ALUControl(ALUControl),
-		.is_mul(is_mul)
+		.is_mul(is_mul),
+		.Result(Result)
 	);
 endmodule

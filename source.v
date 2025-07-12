@@ -1,58 +1,55 @@
 `timescale 1ns / 1ps
 
-module HexTo7Segment (
-    input wire [3:0] digit, 
-    output reg [6:0] catode);
-    
+module hexto7seg (input[3:0] digit, output reg[7:0] catode);
     always @(*) begin
-        casex(digit) 
-            4'b0000: catode = 7'b1000000; // 0
-            4'b0001: catode = 7'b1111001; // 1
-            4'b0010: catode = 7'b0100100; // 2
-            4'b0011: catode = 7'b0110000; // 3
-            4'b0100: catode = 7'b0011001; // 4
-            4'b0101: catode = 7'b0010010; // 5
-            4'b0110: catode = 7'b0000010; // 6
-            4'b0111: catode = 7'b1111000; // 7
-            4'b1000: catode = 7'b0000000; // 8
-            4'b1001: catode = 7'b0011000; // 9
-            4'b1010: catode = 7'b0001000; // A 
-            4'b1011: catode = 7'b0000011; // B 
-            4'b1100: catode = 7'b1000110; // C 
-            4'b1101: catode = 7'b0100001; // D 
-            4'b1110: catode = 7'b0000110; // E 
-            4'b1111: catode = 7'b0001110; // F
-            default: catode = 7'b1111111; // todos apagados
+        case (digit)        //   ABCDEFGdp
+            4'b0000: catode = 8'b00000011; // 0
+            4'b0001: catode = 8'b10011111; // 1
+            4'b0010: catode = 8'b00100101; // 2
+            4'b0011: catode = 8'b00001101; // 3
+            4'b0100: catode = 8'b10011001; // 4
+            4'b0101: catode = 8'b01001001; // 5
+            4'b0110: catode = 8'b01000001; // 6
+            4'b0111: catode = 8'b00011111; // 7
+            4'b1000: catode = 8'b00000001; // 8
+            4'b1001: catode = 8'b00001001; // 9
+            4'b1010: catode = 8'b00010001; // A
+            4'b1011: catode = 8'b11000001; // B
+            4'b1100: catode = 8'b01100011; // C
+            4'b1101: catode = 8'b10000101; // D
+            4'b1110: catode = 8'b01100001; // E
+            4'b1111: catode = 8'b01110001; // F
+            default: catode = 8'b11111111;
         endcase
     end
-
 endmodule
 
-module CLKdivider (
-    input  wire        in_clk,
-    input  wire        reset,    // reset asíncrono, activo alto
-    output reg         out_clk
-);
 
-    // contador de 25 bits (genera un toggle cada vez que desborda)
-    reg [24:0] counter;
+module clkdivider #(parameter DIVIDE_BY = 2)(input clk, input reset, output reg t);
+    localparam WIDTH = $clog2(DIVIDE_BY);
+    reg [WIDTH-1:0] counter;
 
-    // reset asíncrono + lógica de división
-    always @(posedge in_clk or posedge reset) begin
+    always @(posedge clk or posedge reset) begin
         if (reset) begin
             counter <= 0;
-            out_clk <= 0;
+            t <= 0;
         end else begin
-            counter <= counter + 1;
-            if (counter == 0)
-                out_clk <= ~out_clk;
+            if (counter == (DIVIDE_BY/2 - 1)) begin
+                t <= ~t;
+                counter <= 0;
+            end else begin
+                counter <= counter + 1;
+            end
         end
     end
-
 endmodule
 
-module hFSM(input clk,input reset,input[15:0] data,output reg[3:0]
-    digit,output reg[3:0] anode);
+module hFSM(
+    input clk,
+    input reset,
+    input [15:0] data,
+    output reg [3:0] digit,
+    output reg [3:0] anode);
     
     reg [1:0] state;
 
@@ -91,27 +88,25 @@ module hFSM(input clk,input reset,input[15:0] data,output reg[3:0]
 endmodule
 
 // Main module
-module hex_display(input clk, input reset, input[15:0] data, output
-    wire[3:0]anode,output wire[6:0]catode);
-    wire scl_clk;
+module hexdisplay(
+    input clk,
+    input reset,
+    input[15:0] data,
+    output wire[3:0] anode,
+    output wire[7:0] catode
+);
     wire[3:0] digit;
-    
-    
-    CLKdivider sc(
-        .in_clk(clk),
-        .reset(reset),
-        .out_clk(scl_clk)
-    );
+
     hFSM m(
-        .clk(scl_clk),
+        .clk(clk),
         .reset(reset),
         .data(data),
         .digit(digit),
         .anode(anode)
     );
-    HexTo7Segment decoder (
+
+    hexto7seg decoder (
         .digit(digit),
         .catode(catode)
     );
-    
 endmodule

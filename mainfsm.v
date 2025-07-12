@@ -17,6 +17,7 @@
 // Revision 0.01 - File Created
 // Additional Comments:
 // 
+
 //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -145,5 +146,4 @@ module mainfsm (
 		endcase
     assign {NextPC, Branch, MemW, RegW, IRWrite, AdrSrc, ResultSrc, ALUSrcA, ALUSrcB, ALUOp} = controls;
     
-    	
 endmodule

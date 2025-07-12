@@ -35,15 +35,14 @@ module alu(input [31:0] SrcA,
     assign condinvb = ALUControl[0] ? ~SrcB : SrcB;
     assign sum = SrcA + condinvb + ALUControl[0];
 
-    always @(*)
-    begin
+    always @(*) begin
         // valores por defecto para evitar latches
         casex (ALUControl[3:0])
             4'b000?: Result = sum;      // ADD, SUB
             4'b0010: Result = SrcA & SrcB;   // AND
             4'b0011: Result = SrcA | SrcB;   // OR
             4'b0100: Result = SrcA * SrcB;    // MUL
-            4'b0101: Result = SrcB;   // MOV
+            4'b0101: Result = SrcB;  // MOV
             4'b0111: Result  = SrcA / SrcB;   // div
             
             // Result2 = 32 bits mas sig, Result = 32 bits menos significativos
@@ -54,12 +53,11 @@ module alu(input [31:0] SrcA,
                 end
             4'b1000: begin
                 mul_res = $signed(SrcA)*$signed(SrcB); // SMULL (signed)
-                Result2 = mul_res[63:32];
                 Result = mul_res[31:0];
+                Result2 = mul_res[63:32];
                 end
         endcase
     end
-    
     
     assign neg = Result[31];
     assign zero = (Result == 32'b0);

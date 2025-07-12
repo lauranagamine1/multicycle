@@ -102,7 +102,8 @@ module decode (
 	assign ImmSrc = Op;
 	reg [9:0] controls;
 
-	always @(*)
+	always @(*) begin
+	/*
 	   if (is_mul)
 		  controls =10'b0000001001;
 		 else
@@ -123,12 +124,8 @@ module decode (
 			
 			default: controls = 10'bxxxxxxxxxx;
 		endcase
-	assign {RegSrc, ImmSrc, ALUSrc, MemtoReg, RegW, MemW, Branch, ALUOp} = controls;
-	
-	// ALU DECODER
-	
-	always @(*)
-	   
+		 */
+		 // el otro always
 		if (ALUOp) begin
 		// umull
 		  if (is_umull) begin
@@ -164,12 +161,18 @@ module decode (
 			 FlagW[1] = Funct[0];
 			 FlagW[0] = Funct[0] & ((ALUControl == 4'b0000) | (ALUControl == 4'b0001));
 			end 
-		end
+	   end
 		else begin
 			ALUControl = 4'b0000;
 			FlagW = 2'b00;
-		end
+	end
+	end
+	//assign {RegSrc, ImmSrc, ALUSrc, MemtoReg, RegW, MemW, Branch, ALUOp} = controls;
+	
+	// ALU DECODER
+
 	
 	// CONDICIONES PC   
 	assign PCS = ((Rd == 4'b1111) & RegW) | Branch;
+	
 endmodule

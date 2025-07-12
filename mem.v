@@ -32,17 +32,26 @@ module mem (
 	input wire [31:0] wd;
 	output wire [31:0] rd;
 	reg [31:0] RAM [63:0];
-    //initial $readmemh("memfile.dat", RAM);
+    //initial $readmemh("memfile.mem", RAM);
+    
+    // instr for basys
+    
     initial begin //cambio para correr en la placa
-        RAM[0] = 32'hE3400003;  // aquí cargas la instrucción en hex
+        RAM[0] = 32'hE340023F;  // aquí cargas la instrucción en hex
+        RAM[1] = 32'hE340110C;
+        RAM[2] = 32'hE1802001;
+        RAM[3] = 32'HE3403240;
+        RAM[4] = 32'HE3404102;
+        RAM[5] = 32'HE1835004;
+        RAM[6] = 32'HEC657002;
+        RAM[7] = 32'HEC458002;
+        RAM[8] = 32'HE3400005;
+        RAM[9] = 32'hE3401006;
+        RAM[10] = 32'HE0809001;
+        
     end
-
-    //assign RAM[1] = E3401002
-    //assign RAM[2] = E2411004
-    //assign RAM[3] = E0323091
-    //assign RAM[4] = 00145091
-
-
+    
+    
 	assign rd = RAM[a[31:2]]; // word aligned
 	always @(posedge clk)
 		if (we)

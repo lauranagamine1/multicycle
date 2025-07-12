@@ -47,10 +47,12 @@ module datapath (
 	ResultSrc,
 	ImmSrc,
 	ALUControl,
-	is_mul
+	is_mul,
+	Result // new
 );
 
 	input wire clk;
+	
 	input wire reset;
 	output wire [31:0] Adr;
 	output wire [31:0] WriteData;
@@ -73,7 +75,7 @@ module datapath (
 	wire [31:0] ExtImm;
 	wire [31:0] SrcA;
 	wire [31:0] SrcB;
-	wire [31:0] Result;
+	output wire [31:0] Result;
 	wire [31:0] Data;
 	wire [31:0] RD1;
 	wire [31:0] RD2;
@@ -90,9 +92,9 @@ module datapath (
     wire [31:0] ALUResult2;
     wire [31:0] FPUResult, FPUOut; // fpu new
     
-    input wire is_mul = (Instr[7:4]  == 4'b1001); // new
-
-	assign PCNext = Result;
+    input wire is_mul= (Instr[7:4]  == 4'b1001);
+    assign PCNext = Result; // change
+	
 
 	// Your datapath hardware goes below. Instantiate each of the 
 	// submodules that you need. Remember that you can reuse hardware

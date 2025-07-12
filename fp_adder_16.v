@@ -109,11 +109,10 @@ module fp_adder16 (
                     mantissa_normalized = mantissa_temp[10:0];
             end
             // empaquetar signo, exponente y mantisa
-            sum = { sign_large, exponent_normalized, mantissa_normalized[9:0] };
+            
         end
+        sum <= { sign_large, exponent_normalized, mantissa_normalized[9:0] };
     end
     
-    
-
 endmodule
 

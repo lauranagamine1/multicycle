@@ -67,38 +67,37 @@ module fp_adder_32 (
     always @(*) begin
     // si la suma de mantisas es 0, suma es 0
         if (mantissa_sum == 25'd0) begin
-            sum = 32'b00000000;
+            sum <= 32'b00000000;
         end 
         else begin
             
-            mantissa_temp = mantissa_sum;
-            exponent_normalized = exponent_larger;
+            mantissa_temp <= mantissa_sum;
+            exponent_normalized <= exponent_larger;
             exit = 1'b0;
     
             // caso de overflow en la suma de mantisas
             if (mantissa_temp[24]) begin
-                mantissa_normalized = mantissa_temp[24:1];
-                exponent_normalized = exponent_normalized + 1;
+                mantissa_normalized <= mantissa_temp[24:1];
+                exponent_normalized <= exponent_normalized + 1;
             end else begin
                 // shifting hasta que aparezca un 1 en el bit 23
                 for (i = 0; i < 23; i=i+1) begin
                     if (mantissa_temp[23] || exit) begin
-                        mantissa_normalized = mantissa_temp[23:0];
+                        mantissa_normalized <= mantissa_temp[23:0];
                         exit = 1'b1;
                     end else begin
-                        mantissa_temp = mantissa_temp << 1;
-                        exponent_normalized = exponent_normalized - 1;
+                        mantissa_temp <= mantissa_temp << 1;
+                        exponent_normalized <= exponent_normalized - 1;
                     end
                 end
                 if (!exit)
-                    mantissa_normalized = mantissa_temp[23:0];
+                    mantissa_normalized <= mantissa_temp[23:0];
             end
         end
+        sum <= { sign_large, exponent_normalized, mantissa_normalized[22:0] };
     end
 
     // empaquetar signo, exponente y mantisa en la salida
-    always @(*) begin
-        sum = { sign_large, exponent_normalized, mantissa_normalized[22:0] };
-    end
+
 
 endmodule
