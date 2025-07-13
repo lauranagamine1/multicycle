@@ -32,10 +32,10 @@ module mem (
 	input wire [31:0] wd;
 	output wire [31:0] rd;
 	reg [31:0] RAM [63:0];
-    //initial $readmemh("memfile.mem", RAM);
-    initial begin //cambio para correr en la placa
-        RAM[0] = 32'hE3400003;  // aquí cargas la instrucción en hex
-    end
+    initial $readmemh("memfile.mem", RAM);
+    //initial begin //cambio para correr en la placa
+      //  RAM[0] = 32'hE3400003;  // aquí cargas la instrucción en hex
+    //end
 
     //assign RAM[1] = E3401002
     //assign RAM[2] = E2411004
