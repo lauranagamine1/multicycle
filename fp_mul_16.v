@@ -1,24 +1,3 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 07/09/2025 12:15:27 AM
-// Design Name: 
-// Module Name: fp_mul_16
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
 
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
@@ -27,8 +6,7 @@
 // 
 // Create Date: 07/09/2025
 // Module Name: fp_mul_16
-// Description: IEEE-754 half-precision (16 bits) multiplier (sin manejo de NaN/Inf,
-//              y con truncamiento simple, no round-to-nearest-even)
+
 //////////////////////////////////////////////////////////////////////////////////
 
 module fp_mul_16 (
