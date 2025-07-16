@@ -66,7 +66,19 @@ class ARM_Assembler:
             "STRB": 0b10,
             "LDRB": 0b11,
         }
-        self.b_instr = {"B": 0b0}
+
+        self.mem_instr = {
+            "STR": 0b00,
+            "LDR": 0b01,
+            "STRB": 0b10,
+            "LDRB": 0b11,
+        }
+        # Branch instructions: bit[24] = link (1 for BL, 0 for B)
+        self.b_instr = {
+            "B":  0,
+            "BL": 1,
+        }
+
         self.conds = {
             "EQ": 0b0000,
             "NE": 0b0001,
@@ -102,23 +114,17 @@ class ARM_Assembler:
             + list(self.spc_instr.keys())
         )
     def encode_dp_imm(self, val: int) -> tuple[int,int]:
-        """
-        Busca rot (0–15) e imm8 (0–255) tales que:
-            ROR(imm8, rot*2) == val  (módulo 32 bits)
-        """
         for rot in range(16):
             imm8 = (val >> (rot*2)) & 0xFF
             if ((imm8 << (rot*2)) & 0xFFFFFFFF) == (val & 0xFFFFFFFF):
                 return rot, imm8
         raise ValueError(f"0x{val:08X} no encodable como imm8+rotate")
 
-    # Only for tokenization purposes
     def tokenize_instruction(self, instr: str):
         tokens = []
         for match in self.regex.finditer(instr):
             kind = match.lastgroup
             value = match.group()
-
             if kind == "POINTER":
                 possible_instr, cond, S = self.decode_mnemonic(value)
                 if possible_instr in self.valid_ops and cond in self.conds:
@@ -138,24 +144,17 @@ class ARM_Assembler:
                 instr = instr[: -len(suffix)]
                 break
         return instr, cond, flags
-    
-    #
-    # MAIN INSTRUCTION ENCODER
-    #
+
     def assemble_instruction(self, tokens: list[tuple[str, str]], pc) -> int:
         it = iter(tokens)
         w = next(it)
-
-        # IGNORE LABEL
         while w[0] == "LABEL":
             if len(tokens) > 1:
                 w = next(it)
             else:
                 return -1
-
         if w[0] != "OP":
-            raise RuntimeError(f"Function not implemented: {instr}")
-
+            raise RuntimeError(f"Function not implemented: {w[1]}")
 
         instr, cond, S = self.decode_mnemonic(tokens[0][1])
         regs = [reg_val(v) for (k, v) in tokens if k == "REG"]
@@ -212,7 +211,7 @@ class ARM_Assembler:
                     (0b11 << 26)             | # 11 para floating point
                     (0 << 23)                |  # I=0
                     (0b00 << 21)                |  #22:21 = 00 fadd 32
-                    (0 << 20)                |  # S=0
+                    (1 << 20)                |  # S=0
                     (Rn << 16)             |
                     (Rd << 12)             |
                     (0 << 4)                |
@@ -245,7 +244,7 @@ class ARM_Assembler:
                     (0b11 << 26)             | # 11 para floating point
                     (0 << 23)                |  # I=0
                     (0b01 << 21)                |  #22:21 = 00 fmul 01
-                    (0 << 20)                |  # S=0
+                    (1 << 20)                |  # S=0 con flags
                     (Rn << 16)             |
                     (Rd << 12)             |
                     (0 << 4)                |
@@ -297,7 +296,7 @@ class ARM_Assembler:
                     (0 << 25)                |  # I=0
                     (0 << 24)                |  # A=0
                     (0 << 22)                |  # reservado
-                    (0 << 21) | # flags
+                    (1 << 21) | # flags
                     (1 << 20)                |  # S=1
                     (RdHi << 16)             |
                     (RdLo << 12)             |
@@ -383,6 +382,22 @@ class ARM_Assembler:
                     | (0 << 16)
                     | (Rd << 12)
                     | shift
+                )
+            if instr in self.b_instr:
+                label_tok = next((v for (k, v) in tokens if k == "POINTER"), None)
+                if label_tok is None:
+                    raise RuntimeError("Falta label en B/BL")
+                if label_tok not in self.labels:
+                    raise RuntimeError(f"Label no definido: {label_tok}")
+                # offset = destino – (PC+8) en palabras → pc+2
+                offset    = self.labels[label_tok] - (pc + 2)
+                cond_code = self.conds[cond]
+                link_bit  = self.b_instr[instr]      # 0 para B, 1 para BL
+                return (
+                    (cond_code  << 28)        |  # cond[31:28]
+                    (0b101      << 25)        |  # opcode branch
+                    (link_bit   << 24)        |  # setea BL si toca
+                    (offset     & 0x00FFFFFF)   # imm24
                 )
 
             # General purpose encoding (eor, add, sub, etc)
