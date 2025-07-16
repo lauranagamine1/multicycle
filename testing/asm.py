@@ -1,4 +1,4 @@
-# python3 asm.py test.asm out.memfile
+
 import re
 import sys
 import traceback
@@ -14,7 +14,7 @@ TOKEN_SPEC = {
     "L_BRACKET": r"\[",
     "R_BRACKET": r"\]",
     "SPACE":r" ",
-    "UNKOWN": r".",
+    "UNKOWN": r"."
 }
 
 def reg_val(r):
@@ -30,9 +30,6 @@ def imm_val(s,m = 255):
 
 class ARM_Assembler:
     def __init__(self):
-    
-        
-        
         pattern = "|".join(f"(?P<{name}>{regex})" for name, regex in TOKEN_SPEC.items())
         self.regex = re.compile(pattern, re.IGNORECASE)
 
@@ -57,9 +54,7 @@ class ARM_Assembler:
             "FMUL": 0b1110, 
             "FMUL_16": 0b1110,
             "MOVF": 0b1010,
-            
-            }
-
+        }
         self.mem_instr = {
             "STR": 0b00,
             "LDR": 0b01,
@@ -101,16 +96,6 @@ class ARM_Assembler:
             + list(self.b_instr.keys())
             + list(self.spc_instr.keys())
         )
-    def encode_dp_imm(self, val: int) -> tuple[int,int]:
-        """
-        Busca rot (0–15) e imm8 (0–255) tales que:
-            ROR(imm8, rot*2) == val  (módulo 32 bits)
-        """
-        for rot in range(16):
-            imm8 = (val >> (rot*2)) & 0xFF
-            if ((imm8 << (rot*2)) & 0xFFFFFFFF) == (val & 0xFFFFFFFF):
-                return rot, imm8
-        raise ValueError(f"0x{val:08X} no encodable como imm8+rotate")
 
     # Only for tokenization purposes
     def tokenize_instruction(self, instr: str):
@@ -147,23 +132,55 @@ class ARM_Assembler:
         w = next(it)
 
         # IGNORE LABEL
-        while w[0] == "LABEL":
+        while w[0] == "LABEL" or w[0] == "SPACE":
             if len(tokens) > 1:
                 w = next(it)
             else:
                 return -1
 
         if w[0] != "OP":
-            raise RuntimeError(f"Function not implemented: {instr}")
-
-
-        instr, cond, S = self.decode_mnemonic(tokens[0][1])
+            raise RuntimeError(f"Function not implemented: {w[1]}")
+        instr, cond, S = self.decode_mnemonic(w[1])
+        
         regs = [reg_val(v) for (k, v) in tokens if k == "REG"]
         imms = [imm_val(v) for (k, v) in tokens if k == "IMM"]
-
+        # OP == DP
         if instr in self.dp_instr:
+            # Custom DP exceptions
+            if instr == "MOV":
+                S = 0
+                Rn = 0
+                cmd = self.dp_instr[instr]
 
-            # ── PSEUDO-MOVF con inmediato y rotación ──
+                if len(regs) == 1 and len(imms) == 1:
+                    # MOV Rd, #imm
+                    Rd = regs[0]
+                    operand2 = imms[0]
+                    I = 1
+                elif len(regs) == 2 and len(imms) == 0:
+                    # MOV Rd, Rm
+                    Rd, Rm = regs
+                    I = 0
+                    operand2 = Rm
+                else:
+                    raise RuntimeError(
+                        f"Invalid MOV format: shoulb be MOV Rd, Rm or MOV Rd, #imm"
+                    )
+
+                return (
+                    (self.conds[cond] << 28)
+                    | (0b00 << 26)
+                    | (I << 25)
+                    | (cmd << 21)
+                    | (S << 20)
+                    | (Rn << 16)
+                    | (Rd << 12)
+                    | operand2
+                )
+
+            #
+            # If you are not using the standard CPU-lator encoding for 'MUL' remove the following condicional
+            #
             if instr == "MOVF":
                 cmd = self.dp_instr["MOV"]  # 0b1010
                 S   = 0
@@ -245,7 +262,7 @@ class ARM_Assembler:
                     (0b11 << 26)             | # 11 para floating point
                     (0 << 23)                |  # I=0
                     (0b01 << 21)                |  #22:21 = 00 fmul 01
-                    (0 << 20)                |  # S=0
+                    (1 << 20)                |  # S=0 con flags
                     (Rn << 16)             |
                     (Rd << 12)             |
                     (0 << 4)                |
@@ -297,7 +314,7 @@ class ARM_Assembler:
                     (0 << 25)                |  # I=0
                     (0 << 24)                |  # A=0
                     (0 << 22)                |  # reservado
-                    (0 << 21) | # flags
+                    (1 << 21) | # flags
                     (1 << 20)                |  # S=1
                     (RdHi << 16)             |
                     (RdLo << 12)             |
@@ -336,33 +353,21 @@ class ARM_Assembler:
                     | (Rd << 12)
                     | operand2
                 )
-
-            #
-            # If you are not using the standard CPU-lator encoding for 'MUL' remove the following condicional
-            #
             if instr == "MUL":
-                if len(regs) != 3:
-                    raise RuntimeError(f"MUL requiere 3 registros: Rd, Rn, Rm")
-                Rd, Rn, Rm = regs
-                cmd = self.dp_instr[instr]   # 0b1001
-                # Formato MUL:
-                #   cond[31:28],
-                #   00[27:26],
-                #   opcode[24:21] = cmd,
-                #   Rn[19:16],
-                #   Rd[15:12],
-                #   réplica opcode[7:4] = cmd,
-                #   Rm[3:0]
+                if len(regs) != 3 and (len(imms) == 0):
+                    raise RuntimeError(
+                        f" {instr} format invalid. Should be : {instr} Rd, Rm, Rn"
+                    )
+                Rd, Rm, Rs = regs
                 return (
-                    (self.conds[cond] << 28)  |  # condición
-                    (0b00            << 26)  |  # Data-Processing
-                    (cmd             << 21)  |  # opcode bits [24:21]
-                    (Rn              << 16)  |  # Rn
-                    (Rd              << 12)  |  # Rd
-                    (cmd             << 4 )  |  # replica opcode en [7:4]
-                    (Rm)                       # Rm
+                    (self.conds[cond] << 28)
+                    | (0 << 27)
+                    | (0 << 26)
+                    | (Rs << 8)
+                    | (Rd << 16)
+                    | (0b1001 << 4)
+                    | Rm
                 )
-
 
             if instr in ["LSL", "LSR"]:
                 if len(regs) != 2 or not imms:
@@ -478,13 +483,14 @@ class ARM_Assembler:
 
     def assemble_program(self, program: str) -> list[int]:
         lines = program.strip().splitlines()
-        lines = [l.split('//', 1)[0].strip() for l in lines]
-        lines = [l for l in lines if l != ""]
+        lines = [(n+1,l)for n,l in enumerate(lines)]
+        lines = [(n, l.split('//', 1)[0].strip()) for n, l in lines]
+        lines = [(n, l) for n, l in lines if l != ""]
 
         extract = []
         token_lines = []
         pc = 0  
-        for i,line in enumerate(lines):
+        for i,line in lines:
             tokens = self.tokenize_instruction(line)
             if not tokens:
                 continue
@@ -515,7 +521,7 @@ class ARM_Assembler:
                 i += 1
             except Exception as e:
                 print("\nERROR:", e)
-                print("AT LINE:", i, ",WITH:", extract[i])
+                print("AT LINE:", i, "| WITH:", extract[i])
                 print("FAILURE.")
                 quit()
         return result, extract
@@ -545,9 +551,7 @@ if __name__ == "__main__":
     print("\n== Instructions ==")
     for i, instr in enumerate(instrs):
         text = extract[i].lstrip().ljust(18)
-        binstr = f"{instr:032b}"
-        grouped = ' '.join(binstr[i:i+4] for i in range(0, len(binstr), 4))
-        print(f"{i:02d} {text} : 0x{instr:08X}  b{grouped}") # para mostrar binario
+        print(f"{i:02d} {text} : 0x{instr:08X}")
 
     with open(output_file, "w") as f:
         for instr in instrs:
