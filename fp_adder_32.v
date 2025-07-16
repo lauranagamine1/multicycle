@@ -19,86 +19,73 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+
 module fp_adder_32 (
-    input  wire [31:0] a,
-    input  wire [31:0] b,
-    output reg  [31:0] sum
+  input  [31:0] a,
+  input  [31:0] b,
+  output wire [31:0] sum
 );
-    // FORMATO
-    // separa signo, exponente y mantisa de A
-    wire sign_a = a[31];
-    wire [7:0]  exponent_a = a[30:23];
-    wire [22:0] mantissa_a = a[22:0];
 
-    // separar signo, exponente y mantisa de B
-    wire sign_b = b[31];
-    wire [7:0]  exponent_b = b[30:23];
-    wire [22:0] mantissa_b = b[22:0];
+  // extraer signos, exponentes y fracciones
+  wire signA, signB;
+  wire [7:0] expA, expB;
+  wire [23:0] manA, manB;  // con bit oculto
+  
+  assign {signA, expA, manA[22:0]} = a;
+  assign {signB, expB, manB[22:0]} = b;
+  
+  // colocar el bit oculto segun sea el caso
+  assign manA[23] = |expA;
+  assign manB[23] = |expB;
 
-    // add 1 bit a la mantisa
-    wire [23:0] mantissa_a_norm = {1'b1, mantissa_a};
-    wire [23:0] mantissa_b_norm = {1'b1, mantissa_b};
+  // exponentes
+  wire [7:0] expDiff = (expA > expB) ? (expA - expB) : (expB - expA);
+  wire [23:0] manA_shifted = (expA > expB) ? manA : (manA >> expDiff);
+  wire [23:0] manB_shifted = (expB > expA) ? manB : (manB >> expDiff);
+  wire [7:0] expAligned = (expA > expB) ? expA : expB;
 
-    // calcular diferencia de exponentes y seleccionar mayor/menor
-    wire [7:0] exp_diff = (exponent_a > exponent_b) ? (exponent_a - exponent_b) : (exponent_b - exponent_a);
-    
-    wire [23:0] mantissa_larger  = (exponent_a > exponent_b) ? mantissa_a_norm : mantissa_b_norm;
-    wire [23:0] mantissa_smaller = (exponent_a > exponent_b) ? mantissa_b_norm : mantissa_a_norm;
-    wire [7:0]  exponent_larger  = (exponent_a > exponent_b) ? exponent_a : exponent_b;
-    wire sign_large = (exponent_a > exponent_b) ? sign_a : sign_b;
-    wire sign_small = (exponent_a > exponent_b) ? sign_b : sign_a;
+  // sumar/restar mantisas segun signo
+  reg [24:0] mantissaSum;  // 1 bit extra por si hay carry
+  reg resultSign;
 
-    // mantisa menor
-    wire [23:0] mantissa_smaller_aligned = mantissa_smaller >> exp_diff;
-
-    // sumar o restar segin signos
-    wire [24:0] mantissa_sum = (sign_large == sign_small)
-        ? (mantissa_larger + mantissa_smaller_aligned)
-        : (mantissa_larger - mantissa_smaller_aligned);
-    
-    // variables para normalización
-    reg [24:0] mantissa_temp;
-    reg [23:0] mantissa_normalized;
-    reg [7:0] exponent_normalized;
-    reg exit;
-    integer i; // para el for
-
-    // normalizacion
-    always @(*) begin
-    // si la suma de mantisas es 0, suma es 0
-        if (mantissa_sum == 25'd0) begin
-            sum = 32'b00000000;
-        end 
-        else begin
-            
-            mantissa_temp = mantissa_sum;
-            exponent_normalized = exponent_larger;
-            exit = 1'b0;
-    
-            // caso de overflow en la suma de mantisas
-            if (mantissa_temp[24]) begin
-                mantissa_normalized = mantissa_temp[24:1];
-                exponent_normalized = exponent_normalized + 1;
-            end else begin
-                // shifting hasta que aparezca un 1 en el bit 23
-                for (i = 0; i < 23; i=i+1) begin
-                    if (mantissa_temp[23] || exit) begin
-                        mantissa_normalized = mantissa_temp[23:0];
-                        exit = 1'b1;
-                    end else begin
-                        mantissa_temp = mantissa_temp << 1;
-                        exponent_normalized = exponent_normalized - 1;
-                    end
-                end
-                if (!exit)
-                    mantissa_normalized = mantissa_temp[23:0];
-            end
-        end
+  always @(*) begin
+    if (signA == signB) begin
+      mantissaSum = manA_shifted + manB_shifted;
+      resultSign = signA;
+    end else begin
+      if (manA_shifted > manB_shifted) begin
+        mantissaSum = manA_shifted - manB_shifted;
+        resultSign = signA;
+      end else begin
+        mantissaSum = manB_shifted - manA_shifted;
+        resultSign = signB;
+      end
     end
+  end
 
-    // empaquetar signo, exponente y mantisa en la salida
-    always @(*) begin
-        sum = { sign_large, exponent_normalized, mantissa_normalized[22:0] };
+  // 6. Normalización
+  reg [7:0] finalExp;
+  reg [23:0] finalMan;
+
+  always @(*) begin
+    finalExp = expAligned;
+    if (mantissaSum[24]) begin
+      // Overflow, desplazar y aumentar exponente
+      finalMan = mantissaSum[24:1];
+      finalExp = finalExp + 1;
+    end else begin
+      // Normalizar hacia la izquierda si hay ceros a la izquierda
+      finalMan = mantissaSum[23:0];
+      while (finalMan[23] == 0 && finalExp > 0) begin
+        finalMan = finalMan << 1;
+        finalExp = finalExp - 1;
+      end
     end
+  end
+
+  // 8. Armar el resultado
+  wire [22:0] finalFrac = finalMan[22:0];  // ignoramos bit oculto
+  assign sum = (mantissaSum == 0) ? 32'b0 :
+                  {resultSign, finalExp, finalFrac};
 
 endmodule

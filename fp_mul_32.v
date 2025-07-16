@@ -8,48 +8,54 @@
 // Description: IEEE-754 single-precision adder con round-to-nearest-even (sin NaN/Inf)
 //////////////////////////////////////////////////////////////////////////////////
 
-module fp_mul_32 (
-    input [31:0] a, 
-    input [31:0] b,
-	output [31:0] sum);
-	
-    wire sa, sb, sres;
-
-    wire [7:0] expa, expb,expres;
-    wire [22:0] mantA, mantB, mantRes;
-
-    wire [45:0] mantissa;
-    wire [47:0] bmantissa;
     
-    assign {sa,expa,mantA} = a;
-    assign {sb,expb,mantB} = b;
-    wire [23:0] NMantA,NMantB;
-
-    assign NMantA = {1'b1,mantA};
-    assign NMantB = {1'b1,mantB};
-
-    assign bmantissa = (NMantA) * (NMantB); 
-    assign mantissa = (NMantA) * (NMantB);
-
-    assign sres = sa*sb; // signo de suma final
-    assign expres = bmantissa[47] ? expa + expb - 126 : expa + expb - 127;
-
-    assign mantRes = mantissa[45:23];
-
-    reg [22:0] mantreto;
+module fp_mul_32 (
+    input [31:0] a,
+    input [31:0] b,
+    output reg [31:0] sum
+);
+    reg[47:0] manT;
+    reg[23:0] manR;
+    reg[7:0] expR;
+    
+    wire signA = a[31], signB = b[31];
+    wire [7:0] expA = a[30:23], expB = b[30:23];
+    wire [22:0] fracA = a[22:0], fracB = b[22:0];
+    
+    wire [23:0] manA = (expA != 0) ? {1'b1, fracA} : {1'b0, fracA};
+    wire [23:0] manB = (expB != 0) ? {1'b1, fracB} : {1'b0, fracB};
+        
+    parameter N = 45;
+    integer i;
     
     always @(*) begin
-        if(bmantissa[47])
-        begin
-            mantreto=mantRes;
-            mantreto=mantreto>>1;
-        end
-        else
-            begin
-                mantreto=mantRes;
+        if (expA == 8'd0 || expB == 8'd0)
+            sum = 32'd0;
+        else  begin
+            //nuevo exponente menos bias
+            expR = expA + expB - 127;
+            // multiplicar mantisa
+            manT = manA * manB;
+            
+            // 3. Normalizacon
+            if(manT[47] == 0) begin
+                for (i = 0; i < N; i = i + 1) begin
+                    if (manT[47] == 0) begin
+                        manT = manT << 1;
+                    end 
+                end
+                manR = manT[46:24];
+            end 
+            else begin 
+                manR = manT[46:24];
+                if(manT[23] == 1) begin
+                    manR = manR + 1;
+                end
+                expR = expR + 1;
             end
-    end
+    
+        sum = {a[31] ^ b[31], expR, manR[22:0]};
 
-    assign sum = {sres,expres,mantreto};
-
+        end
+    end    
 endmodule

@@ -42,15 +42,15 @@ module condlogic (
 	wire CondEx;
 	wire CondExNext;
 	
-    assign FlagWrite = FlagW & {2 {CondEx}};
-
+    assign FlagWrite = FlagW & {2{CondEx}};;
+    
 	condcheck cc(
 		.Cond(Cond),
 		.Flags(Flags),
 		.CondEx(CondEx)
 	);
 	
-	flopr condexnext(
+	flopr #(1) condexnext(
          .clk(clk),
 		.reset(reset),
 		.d(CondEx),
@@ -64,6 +64,7 @@ module condlogic (
 		.d(ALUFlags[3:2]),
 		.q(Flags[3:2])
 	);
+	
 	flopenr #(2) flagreg0(
 		.clk(clk),
 		.reset(reset),
@@ -71,10 +72,11 @@ module condlogic (
 		.d(ALUFlags[1:0]),
 		.q(Flags[1:0])
 	);
-
+	
 
 	// Control de señales condicionales
 	assign RegWrite  = RegW  & CondExNext;
 	assign MemWrite  = MemW  & CondExNext;
 	assign PCWrite   = (PCS   & CondExNext)|NextPC;
+
 endmodule

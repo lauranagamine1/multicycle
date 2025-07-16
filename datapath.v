@@ -92,7 +92,7 @@ module datapath (
     
     input wire is_mul = (Instr[7:4]  == 4'b1001); // new
 
-	assign PCNext = Result;
+	
 
 	// Your datapath hardware goes below. Instantiate each of the 
 	// submodules that you need. Remember that you can reuse hardware
@@ -108,12 +108,14 @@ module datapath (
 		.d(PCNext),
 		.q(PC)
 	);
-	mux2 #(32) adrmux(
+	
+	mux2 #(32) adrmux( 
 		.d0(PC),
-		.d1(Result),
+		.d1(PCNext), // change: PCNEXT. before: Result
 		.s(AdrSrc),
 		.y(Adr)
 	);
+	
 	flopenr #(32) instrflop(
 		.clk(clk),
 		.reset(reset),
@@ -259,4 +261,5 @@ module datapath (
        .y(Result)
     );
 	
+	assign PCNext = Result;
 endmodule

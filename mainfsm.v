@@ -96,11 +96,10 @@ module mainfsm (
                     2'b01: nextstate = MEMADR;
                     2'b10: nextstate = BRANCH;
                     2'b11:  
-                    nextstate = EXECUTER;
+                        nextstate = EXECUTER;
                     default: nextstate = UNKNOWN;
                 endcase
             //MULL: nextstate = ALUWB; // new, or fetch?
-            
 			EXECUTER:
              nextstate = ALUWB;
 			     
@@ -111,13 +110,13 @@ module mainfsm (
                     nextstate = MEMWRITE; // STR
                 else
                     nextstate = MEMREAD;  // LDR
-            MEMWB:  nextstate = FETCH;   // <-- aquí lo añades
+            MEMWB:  nextstate = FETCH;   
 			MEMREAD:
 			     nextstate = MEMWB;
 			MEMWRITE: 
 			     nextstate = FETCH;
-
-
+			BRANCH: nextstate = FETCH;
+			
 			default: nextstate = FETCH;
 		endcase
 
@@ -138,7 +137,7 @@ module mainfsm (
                 end else begin
                 controls = 13'b0001000000000;
                 end
-            BRANCH: controls = 13'b0100001000010;
+            BRANCH: controls   = 13'b0100001000010;
             
             //MULL: controls = 13'b000100000001; //  escribe en registro, ALUOp=0
 			default: controls = 13'bxxxxxxxxxxxxx;
